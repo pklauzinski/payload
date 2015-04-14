@@ -1,5 +1,5 @@
 {
-  "name": "payload",
+  "name": "payload.js",
   "version": "0.1.0",
   "homepage": "https://github.com/pklauzinski/payload",
   "authors": [
@@ -17,6 +17,7 @@
   ],
   "keywords": [
     "payload",
+    "payloadjs",
     "rest",
     "spa",
     "single-page-application",
