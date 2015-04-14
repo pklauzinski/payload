@@ -1,0 +1,35 @@
+{
+  "name": "payload",
+  "version": "0.1.0",
+  "homepage": "https://github.com/pklauzinski/payload",
+  "authors": [
+    {
+      "name": "Philip Klauzinski",
+      "homepage": "http://gui.ninja"
+    }
+  ],
+  "description": "HTML5-data-driven behavioral layer designed to interact intuitively with REST APIs from within SPAs (single-page-applications) and mobile apps.",
+  "main": "payload.js",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "payload",
+    "rest",
+    "spa",
+    "single-page-application",
+    "html5",
+    "ajax"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "Gruntfile.js"
+  ]
+}

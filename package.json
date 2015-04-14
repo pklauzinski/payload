@@ -1,0 +1,35 @@
+{
+  "name": "payload.js",
+  "version": "0.1.0",
+  "description": "HTML5-data-driven behavioral layer designed to interact intuitively with REST APIs from within SPAs (single-page-applications) and mobile apps.",
+  "main": "payload.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pklauzinski/payload.git"
+  },
+  "keywords": [
+    "payload",
+    "rest",
+    "spa",
+    "single-page-application",
+    "html5",
+    "ajax"
+  ],
+  "author": {
+    "name": "Philip Klauzinski",
+    "url": "http://gui.ninja"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pklauzinski/payload/issues"
+  },
+  "homepage": "https://github.com/pklauzinski/payload",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.1",
+    "grunt-contrib-uglify": "^0.9.1"
+  }
+}
