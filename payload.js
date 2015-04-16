@@ -196,7 +196,7 @@
             if (typeof(opts) === 'function') {
                 _options.apiCallback = opts;
             } else if (typeof(opts) === 'object') {
-                $.extend(_options, opts);
+                _this.merge(opts);
             } else if (typeof(opts) === 'string') {
                 _options.context = opts;
             }
@@ -204,8 +204,7 @@
         };
 
         this.merge = function(opts) {
-            $.extend(_options, opts);
-            return this;
+            return $.extend(_options, opts);
         };
 
         this.apiRequest = function($this) {
@@ -236,6 +235,7 @@
                     }
                 },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
+                requestKey = api.url + $this.serialize(),
                 $selector, $loading, $load, html, templateData, params;
 
             // Add the request payload to the template data under "request" namespace
@@ -285,12 +285,12 @@
 
                 _cacheView($this, api, templateName);
 
-                if (api.cacheResponse && _cache.response[api.url] && _cache.response[api.url].data && _cache.response[api.url].done) {
-                    templateData = $.extend({}, _cache.response[api.url].data, api.templateData);
+                if (api.cacheResponse && _cache.response[requestKey] && _cache.response[requestKey].data && _cache.response[requestKey].done) {
+                    templateData = $.extend({}, _cache.response[requestKey].data, api.templateData);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
-                    _cache.response[api.url].done();
+                    _cache.response[requestKey].done();
                     publishEvents([params]);
                     return;
                 }
@@ -360,7 +360,7 @@
                     }
 
                     if (api.cacheResponse) {
-                        _cache.response[api.url] = {
+                        _cache.response[requestKey] = {
                             data: templateData,
                             done: xhrDone
                         };
