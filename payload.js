@@ -228,10 +228,14 @@
                         view: $this.data()
                     }
                 },
-                publishEvents = function(args) {
-                    var i = 0;
+                publishEvents = function(args, namespace) {
+                    var i = 0, event_name;
                     for (i; i < api.events.length; i++) {
-                        _this.publish(api.events[i], args || []);
+                        event_name = api.events[i];
+                        if (namespace) {
+                            event_name += '.' + namespace;
+                        }
+                        _this.publish(event_name, args || []);
                     }
                 },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
@@ -257,6 +261,8 @@
                     $target: $selector,
                     api: api
                 };
+                // fire off a ".pre" name-spaced event to allow last-minute setup to occur
+                publishEvents([params], 'pre');
 
                 if (api.cacheView &&
                     _cache.view[api.selector] &&
