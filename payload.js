@@ -176,15 +176,6 @@
                 } else {
                     _lastTemplate = null;
                 }
-            },
-
-            // Utility methods
-
-            affixNamespace = function(names, namespace) {
-                // will append a namespace even if there already is one
-                return names.split(' ').map(function (val) {
-                    return val + '.' + namespace;
-                }).join(' ');
             }
 
             ; // End var declaration
@@ -238,13 +229,13 @@
                     }
                 },
                 publishEvents = function(args, namespace) {
-                    var i = 0, event_names;
+                    var i = 0, event_name;
                     for (i; i < api.events.length; i++) {
-                        event_names = api.events[i];
+                        event_name = api.events[i];
                         if (namespace) {
-                            event_names = affixNamespace(event_names, namespace);
+                            event_name += '.' + namespace;
                         }
-                        _this.publish(event_names, args || []);
+                        _this.publish(event_name, args || []);
                     }
                 },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
