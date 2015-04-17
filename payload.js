@@ -179,6 +179,7 @@
             },
 
             // Utility methods
+
             affixNamespace = function(names, namespace) {
                 // will append a namespace even if there already is one
                 return names.split(' ').map(function (val) {
