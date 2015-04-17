@@ -176,6 +176,14 @@
                 } else {
                     _lastTemplate = null;
                 }
+            },
+
+            // Utility methods
+            affixNamespace = function(names, namespace) {
+                // will append a namespace even if there already is one
+                return names.split(' ').map(function (val) {
+                    return val + '.' + namespace;
+                }).join(' ');
             }
 
             ; // End var declaration
@@ -228,10 +236,14 @@
                         view: $this.data()
                     }
                 },
-                publishEvents = function(args) {
-                    var i = 0;
+                publishEvents = function(args, namespace) {
+                    var i = 0, event_names;
                     for (i; i < api.events.length; i++) {
-                        _this.publish(api.events[i], args || []);
+                        event_names = api.events[i];
+                        if (namespace) {
+                            event_names = affixNamespace(event_names, namespace);
+                        }
+                        _this.publish(event_names, args || []);
                     }
                 },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
@@ -257,6 +269,8 @@
                     $target: $selector,
                     api: api
                 };
+                // fire off a ".pre" name-spaced event to allow last-minute setup to occur
+                publishEvents([params], 'pre');
 
                 if (api.cacheView &&
                     _cache.view[api.selector] &&
