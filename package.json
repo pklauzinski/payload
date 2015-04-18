@@ -1,6 +1,6 @@
 {
-  "name": "payload.js",
-  "version": "0.1.3",
+  "name": "payloadjs",
+  "version": "0.1.4",
   "description": "HTML5-data-driven behavioral layer designed to interact intuitively with REST APIs from within SPAs (single-page-applications) and mobile apps.",
   "main": "payload.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "keywords": [
     "payload",
     "payloadjs",
+    "payload.js",
     "rest",
     "spa",
     "single-page-application",
