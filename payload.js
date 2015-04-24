@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.1.4
+ * @version 0.1.5
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -192,6 +192,11 @@
 
         this.debug = _debug;
 
+        /**
+         * Deliver Payload API functionality to the specified context
+         *
+         * @param opts
+         */
         this.deliver = function(opts) {
             if (typeof(opts) === 'function') {
                 _options.apiCallback = opts;
@@ -203,6 +208,12 @@
             return _initialize();
         };
 
+        /**
+         * Merge the current options with the given new options
+         *
+         * @param opts
+         * @returns {*}
+         */
         this.merge = function(opts) {
             return $.extend(_options, opts);
         };
@@ -239,11 +250,16 @@
                     }
                 },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
-                requestKey = api.url + $this.serialize(),
+                cacheKey = api.url + $this.serialize(),
                 $selector, $loading, $load, html, templateData, params;
 
             // Add the request payload to the template data under "request" namespace
-            api.templateData.request = api.requestData;
+            api.templateData.request = $.extend(api.requestData, {
+                href: api.href,
+                url: api.url,
+                method: api.method,
+                cacheKey: cacheKey
+            });
 
             // If caching is invoked and this is the last template loaded, do nothing
             if (api.cacheView && _lastTemplate === templateName) {
@@ -291,12 +307,12 @@
 
                 _cacheView($this, api, templateName);
 
-                if (api.cacheResponse && _cache.response[requestKey] && _cache.response[requestKey].data && _cache.response[requestKey].done) {
-                    templateData = $.extend({}, _cache.response[requestKey].data, api.templateData);
+                if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
+                    templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
-                    _cache.response[requestKey].done();
+                    _cache.response[cacheKey].done();
                     publishEvents([params]);
                     return;
                 }
@@ -366,7 +382,7 @@
                     }
 
                     if (api.cacheResponse) {
-                        _cache.response[requestKey] = {
+                        _cache.response[cacheKey] = {
                             data: templateData,
                             done: xhrDone
                         };
