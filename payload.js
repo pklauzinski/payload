@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.1.5
+ * @version 0.1.6
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -254,13 +254,12 @@
                 $selector, $loading, $load, html, templateData, params;
 
             // Add the request payload to the template data under "request" namespace
-            api.templateData.request = {
+            api.templateData.request = $.extend({
                 href: api.href,
                 url: api.url,
                 method: api.method,
                 cacheKey: cacheKey
-            };
-            $.extend(api.templateData.request, api.requestData);
+            }, api.requestData);
 
             // If caching is invoked and this is the last template loaded, do nothing
             if (api.cacheView && _lastTemplate === templateName) {
