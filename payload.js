@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.1.6
+ * @version 0.1.7
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -48,6 +48,7 @@
                 dataNamespace: false,
                 debug: false,
                 loadingHtml: '<small>Loading...</small>',
+                subscribers: [],
                 useHref: false,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
@@ -101,6 +102,9 @@
                     _error('Selector "' + _options.context + '" not found');
                 }
                 _initDelegatedBehaviors();
+                if (_options.subscribers.length) {
+                    _this.addSubscribers(_options.subscribers);
+                }
                 return _this;
             },
 
@@ -302,6 +306,7 @@
 
                 if (!api.url) {
                     publishEvents([params]);
+                    _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
                 }
 
@@ -314,13 +319,14 @@
                     _options.apiAfterRender(params);
                     _cache.response[cacheKey].done();
                     publishEvents([params]);
+                    _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
                 }
                 if (api.loading) {
                     $load = $(_options.loadingHtml).attr(_dataPrefix + 'role', 'loading');
                     $selector.empty().prepend($load);
                 } else if ($loading.length) {
-                    $loading.removeClass('hidden').show();
+                    $loading.show();
                 }
 
                 // Is there an access token?
@@ -428,6 +434,30 @@
 
         this.unsubscribe = function() {
             _$events.off.apply(_$events, arguments);
+        };
+
+        this.addSubscribers = function(subscribers) {
+            $.each(subscribers, function(i, val) {
+                if (val.events) {
+                    if (typeof val.events === 'string') {
+                        val.events = [val.events];
+                    }
+                } else {
+                    val.events = [];
+                }
+                if (val.methods) {
+                    if (typeof val.methods === 'function') {
+                        val.methods = [val.methods];
+                    }
+                } else {
+                    val.methods = [];
+                }
+                $.each(val.events, function(j, ev) {
+                    $.each(val.methods, function(k, func) {
+                        _this.subscribe(ev, func);
+                    });
+                });
+            });
         };
 
         this.serializeObject = function($form) {
