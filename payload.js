@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.1.7
+ * @version 0.2.0
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -48,7 +48,7 @@
                 dataNamespace: false,
                 debug: false,
                 loadingHtml: '<small>Loading...</small>',
-                subscribers: [],
+                subscribers: [], // [ { events: [], methods: [] } ]
                 useHref: false,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
@@ -73,7 +73,7 @@
 
             _$events = $({}),
 
-            // Safe console debug - http://klauzinski.com/javascript/safe-firebug-console-in-javascript
+        // Safe console debug - http://klauzinski.com/javascript/safe-firebug-console-in-javascript
             _debug = function(m) {
                 var args, sMethod;
                 if (_options.debug && typeof console === 'object' && (typeof m === 'object' || typeof console[m] === 'function')) {
@@ -113,7 +113,7 @@
                 _delegateClicks();
             },
 
-            // Delegation methods
+        // Delegation methods
 
             _delegateApiRequests = function() {
                 _$context.on('click.api-request auto-load.api-request', _selectors.API_LINK, function(e) {
@@ -145,8 +145,14 @@
                 });
             },
 
-            // Caching
-
+            /**
+             * Process view caching
+             *
+             * @param $origin
+             * @param api
+             * @param templateName
+             * @private
+             */
             _cacheView = function($origin, api, templateName) {
                 var selector = api.selector,
                     $selector = $(selector), key, current;
@@ -419,23 +425,53 @@
             }
         };
 
-        this.triggerAutoLoad = function(node) {
-            $(node || _selectors.AUTO_LOAD).trigger('auto-load');
+        /**
+         * Trigger the 'auto-load' event on given jQuery object
+         * When no argument is passed, trigger 'auto-load' if found within the app context
+         *
+         * @param $e
+         */
+        this.triggerAutoLoad = function($e) {
+            if ($e !== undefined) {
+                if ($e instanceof $ && $e.length) {
+                    $e.trigger('auto-load');
+                }
+            } else {
+                _$context.find(_selectors.AUTO_LOAD).trigger('auto-load');
+            }
         };
 
+        /**
+         * Publish a custom event
+         * based on https://github.com/cowboy/jquery-tiny-pubsub
+         */
         this.publish = function() {
-            _$events.trigger.apply(_$events, arguments);
             _debug('info', '"' + arguments[0] + '"', 'event published.');
+            _$events.trigger.apply(_$events, arguments);
         };
 
+        /**
+         * Subscribe to a custom event
+         * based on https://github.com/cowboy/jquery-tiny-pubsub
+         */
         this.subscribe = function() {
             _$events.on.apply(_$events, arguments);
         };
 
+        /**
+         * Unsubscribe from a custom event
+         * based on https://github.com/cowboy/jquery-tiny-pubsub
+         */
         this.unsubscribe = function() {
             _$events.off.apply(_$events, arguments);
         };
 
+        /**
+         * Subscribe events to given methods in array of { events: [], methods: [] } objects
+         *
+         * @param subscribers
+         * @public
+         */
         this.addSubscribers = function(subscribers) {
             $.each(subscribers, function(i, val) {
                 if (val.events) {
@@ -443,14 +479,14 @@
                         val.events = [val.events];
                     }
                 } else {
-                    val.events = [];
+                    return;
                 }
                 if (val.methods) {
                     if (typeof val.methods === 'function') {
                         val.methods = [val.methods];
                     }
                 } else {
-                    val.methods = [];
+                    return;
                 }
                 $.each(val.events, function(j, ev) {
                     $.each(val.methods, function(k, func) {
