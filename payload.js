@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.2.0
+ * @version 0.2.1
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -73,7 +73,13 @@
 
             _$events = $({}),
 
-        // Safe console debug - http://klauzinski.com/javascript/safe-firebug-console-in-javascript
+            /**
+             * Safe console debug
+             * http://klauzinski.com/javascript/safe-firebug-console-in-javascript
+             *
+             * @param m
+             * @private
+             */
             _debug = function(m) {
                 var args, sMethod;
                 if (_options.debug && typeof console === 'object' && (typeof m === 'object' || typeof console[m] === 'function')) {
@@ -236,13 +242,11 @@
                     cacheRequest: $this.attr(_dataPrefix + 'cache-request') || false,
                     cacheResponse: $this.attr(_dataPrefix + 'cache-response') || false,
                     cacheView: $this.attr(_dataPrefix + 'cache-view') || false,
-                    focus: JSON.parse($this.attr(_dataPrefix + 'focus') || false),
                     type: $this.attr(_dataPrefix + 'type') || 'json',
                     selector: $this.attr(_dataPrefix + 'selector') || false,
                     template: Handlebars.templates[$this.attr(_dataPrefix + 'template')] || false,
                     partial: Handlebars.partials[$this.attr(_dataPrefix + 'partial')] || false,
                     events: $this.attr(_dataPrefix + 'publish') ? $this.attr(_dataPrefix + 'publish').split(' ') : [],
-                    title: $this.attr(_dataPrefix + 'title') || $this.attr('title') || $this.text(),
                     requestData: $.extend({}, _this.serializeObject($this), JSON.parse($this.attr(_dataPrefix + 'form') || '{}')),
                     templateData: {
                         app: _this.appData,
@@ -281,7 +285,7 @@
             // Begin template sequence
             if (api.url || api.selector && (api.template || api.partial)) {
                 $selector = $(api.selector);
-                $loading = $selector.find('[' + _dataPrefix + 'role="loading"]');
+                $loading = $this.find('[' + _dataPrefix + 'role="loading"]');
                 params = {
                     $origin: $this,
                     $target: $selector,
@@ -496,6 +500,12 @@
             });
         };
 
+        /**
+         * Convert given form input data to an object
+         *
+         * @param $form
+         * @returns {{}}
+         */
         this.serializeObject = function($form) {
             var o = {},
                 a = $form.serializeArray();
@@ -511,6 +521,36 @@
                 }
             });
             return o;
+        };
+
+        /**
+         * Clear cache of specified type ('response' or 'view') and optionally a single key
+         * To clear all cache, pass no parameters
+         *
+         * @param type
+         * @param key
+         */
+        this.clearCache = function(type, key) {
+            if (type === undefined) {
+                _cache = {
+                    response: {},
+                    view: {}
+                };
+            } else if (type === 'response') {
+                if (key === undefined) {
+                    _cache.response = {};
+                } else {
+                    delete _cache.response[key];
+                }
+            } else if (type === 'view') {
+                if (key === undefined) {
+                    _cache.view = {};
+                } else {
+                    delete _cache.view[key];
+                }
+            } else {
+                return _error('Payload.clearCache() - Incorrect type defined');
+            }
         };
 
     };
