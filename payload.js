@@ -265,11 +265,11 @@
                     }
                 },
                 render_html = function (params, templateData, html) {
-                    params.html = html;
                     _options.apiBeforeRender(params);
                     if (html === undefined) {
                         html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                     }
+                    params.html = html;
                     $selector.html(html);
                     _options.apiAfterRender(params);
                     return html;
