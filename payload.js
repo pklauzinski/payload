@@ -42,6 +42,7 @@
                     return true;
                 },
                 apiAfterRender: $.noop,
+                apiBeforeRender: $.noop,
                 apiAccessToken: false,
                 apiResponseParent: false,
                 context: document.body,
@@ -263,6 +264,16 @@
                         _this.publish(event_name, args || []);
                     }
                 },
+                render_html = function (params, templateData, html) {
+                    params.html = html;
+                    _options.apiBeforeRender(params);
+                    if (html === undefined) {
+                        html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
+                    }
+                    $selector.html(html);
+                    _options.apiAfterRender(params);
+                    return html;
+                },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
                 cacheKey = api.url + $this.serialize(),
                 $selector, $loading, $load, html, templateData, params;
@@ -301,15 +312,12 @@
                 ) {
                     html = _cache.view[api.selector][templateName].html;
                     _cacheView($this, api, templateName);
-                    $selector.html(html);
-                    _options.apiAfterRender(params);
+                    render_html(params, api.templateData, html);
                     _cache.view[api.selector][templateName].done();
                     api.url = false;
                 } else if (!api.url) {
-                    html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
+                    html = render_html(params, api.templateData);
                     _cacheView($this, api, templateName);
-                    $selector.html(html);
-                    _options.apiAfterRender(params);
                 }
 
                 _options.apiCallback(params);
@@ -324,9 +332,7 @@
 
                 if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
                     templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
-                    html = api.template ? api.template(templateData) : api.partial(templateData);
-                    $selector.html(html);
-                    _options.apiAfterRender(params);
+                    html = render_html(params, api.templateData);
                     _cache.response[cacheKey].done();
                     publishEvents([params]);
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
@@ -366,14 +372,13 @@
                 }).done(function(response, status, jqXHR) {
                     var responseData = _options.apiResponseParent ? response[_options.apiResponseParent] : response,
                         templateData = $.extend({}, api.templateData, $.isArray(responseData) ? { data: responseData } : responseData),
-                        html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false,
                         params = {
                             response: response,
                             status: status,
                             jqXHR: jqXHR,
                             $origin: $this,
                             $target: $selector,
-                            html: html,
+                            html: undefined, // filled in by render_html()
                             api: $.extend(api, { templateData: templateData })
                         },
                         xhrDone = function() {
@@ -383,15 +388,13 @@
 
                     if ($selector.length && api.loading) {
                         $selector.find(_selectors.LOADING).first().fadeOut(100, function() {
-                            $selector.html(html);
-                            _options.apiAfterRender(params);
+                            render_html(params, templateData);
                             xhrDone();
                             publishEvents([params]);
                         });
                     } else {
                         if ($selector.length && (api.method === 'get' || $loading.length)) {
-                            $selector.html(html);
-                            _options.apiAfterRender(params);
+                            render_html(params, templateData);
                         }
                         xhrDone();
                         publishEvents([params]);
