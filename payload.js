@@ -264,16 +264,6 @@
                         _this.publish(event_name, args || []);
                     }
                 },
-                render_html = function (params, templateData, html) {
-                    _options.apiBeforeRender(params);
-                    if (html === undefined) {
-                        html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
-                    }
-                    params.html = html;
-                    $selector.html(html);
-                    _options.apiAfterRender(params);
-                    return html;
-                },
                 templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
                 cacheKey = api.url + $this.serialize(),
                 $selector, $loading, $load, html, templateData, params;
@@ -312,11 +302,16 @@
                 ) {
                     html = _cache.view[api.selector][templateName].html;
                     _cacheView($this, api, templateName);
-                    render_html(params, api.templateData, html);
+                    _options.apiBeforeRender(params);
+                    $selector.html(html);
+                    _options.apiAfterRender(params);
                     _cache.view[api.selector][templateName].done();
                     api.url = false;
                 } else if (!api.url) {
-                    html = render_html(params, api.templateData);
+                    _options.apiBeforeRender(params);
+                    html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
+                    $selector.html(html);
+                    _options.apiAfterRender(params);
                     _cacheView($this, api, templateName);
                 }
 
@@ -332,7 +327,10 @@
 
                 if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
                     templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
-                    html = render_html(params, api.templateData);
+                    _options.apiBeforeRender(params);
+                    html = api.template ? api.template(templateData) : api.partial(templateData);
+                    $selector.html(html);
+                    _options.apiAfterRender(params);
                     _cache.response[cacheKey].done();
                     publishEvents([params]);
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
@@ -388,13 +386,19 @@
 
                     if ($selector.length && api.loading) {
                         $selector.find(_selectors.LOADING).first().fadeOut(100, function() {
-                            render_html(params, templateData);
+                            _options.apiBeforeRender(params);
+                            html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
+                            $selector.html(html);
+                            _options.apiAfterRender(params);
                             xhrDone();
                             publishEvents([params]);
                         });
                     } else {
                         if ($selector.length && (api.method === 'get' || $loading.length)) {
-                            render_html(params, templateData);
+                            _options.apiBeforeRender(params);
+                            html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
+                            $selector.html(html);
+                            _options.apiAfterRender(params);
                         }
                         xhrDone();
                         publishEvents([params]);
