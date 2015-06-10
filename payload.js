@@ -42,6 +42,7 @@
                     return true;
                 },
                 apiAfterRender: $.noop,
+                apiBeforeRender: $.noop,
                 apiAccessToken: false,
                 apiResponseParent: false,
                 context: document.body,
@@ -301,15 +302,17 @@
                 ) {
                     html = _cache.view[api.selector][templateName].html;
                     _cacheView($this, api, templateName);
+                    _options.apiBeforeRender(params);
                     $selector.html(html);
                     _options.apiAfterRender(params);
                     _cache.view[api.selector][templateName].done();
                     api.url = false;
                 } else if (!api.url) {
+                    _options.apiBeforeRender(params);
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
-                    _cacheView($this, api, templateName);
                     $selector.html(html);
                     _options.apiAfterRender(params);
+                    _cacheView($this, api, templateName);
                 }
 
                 _options.apiCallback(params);
@@ -324,6 +327,7 @@
 
                 if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
                     templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
+                    _options.apiBeforeRender(params);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
@@ -366,14 +370,13 @@
                 }).done(function(response, status, jqXHR) {
                     var responseData = _options.apiResponseParent ? response[_options.apiResponseParent] : response,
                         templateData = $.extend({}, api.templateData, $.isArray(responseData) ? { data: responseData } : responseData),
-                        html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false,
                         params = {
                             response: response,
                             status: status,
                             jqXHR: jqXHR,
                             $origin: $this,
                             $target: $selector,
-                            html: html,
+                            html: undefined, // filled in by render_html()
                             api: $.extend(api, { templateData: templateData })
                         },
                         xhrDone = function() {
@@ -383,6 +386,8 @@
 
                     if ($selector.length && api.loading) {
                         $selector.find(_selectors.LOADING).first().fadeOut(100, function() {
+                            _options.apiBeforeRender(params);
+                            html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             $selector.html(html);
                             _options.apiAfterRender(params);
                             xhrDone();
@@ -390,6 +395,8 @@
                         });
                     } else {
                         if ($selector.length && (api.method === 'get' || $loading.length)) {
+                            _options.apiBeforeRender(params);
+                            html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             $selector.html(html);
                             _options.apiAfterRender(params);
                         }
