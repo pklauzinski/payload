@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.2.2
+ * @version 0.2.3
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -41,14 +41,15 @@
                 apiOnSubmit: function() {
                     return true;
                 },
-                apiAfterRender: $.noop,
                 apiBeforeRender: $.noop,
+                apiAfterRender: $.noop,
                 apiAccessToken: false,
                 apiResponseParent: false,
                 context: document.body,
                 dataNamespace: false,
                 debug: false,
                 loadingHtml: '<small>Loading...</small>',
+                loadingDefault: true,
                 subscribers: [], // [ { events: [], methods: [] } ]
                 useHref: false,
                 xhrAlways: $.noop,
@@ -280,7 +281,8 @@
                 return;
             }
 
-            api.loading = ($origin.attr(_dataPrefix + 'loading') ? JSON.parse($origin.attr(_dataPrefix + 'loading')) : true);
+            api.loading = ($origin.attr(_dataPrefix + 'loading') ?
+                JSON.parse($origin.attr(_dataPrefix + 'loading')) : _options.loadingDefault);
 
             // Begin template sequence
             if (api.url || api.selector && (api.template || api.partial)) {
