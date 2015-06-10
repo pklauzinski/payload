@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.2.1
+ * @version 0.2.2
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -120,11 +120,10 @@
                 _delegateClicks();
             },
 
-        // Delegation methods
+            // Delegation methods
 
             _delegateApiRequests = function() {
                 _$context.on('click.api-request auto-load.api-request', _selectors.API_LINK, function(e) {
-                    //var $this = $(this).closest('[' + _dataPrefix + 'selector]');
                     var $this = $(this);
                     e.preventDefault();
                     if ($this.prop('disabled') || $this.hasClass('disabled') || $this.data('disabled')) {
@@ -235,23 +234,23 @@
             return $.extend(_options, opts);
         };
 
-        this.apiRequest = function($this) {
+        this.apiRequest = function($origin) {
             var api = {
-                    href: $this.attr('href'),
-                    url: $this.attr(_dataPrefix + 'url') || $this.attr('action'),
-                    method: ($this.attr(_dataPrefix + 'method') || $this.attr('method') || 'get').toLowerCase(),
-                    cacheRequest: $this.attr(_dataPrefix + 'cache-request') || false,
-                    cacheResponse: $this.attr(_dataPrefix + 'cache-response') || false,
-                    cacheView: $this.attr(_dataPrefix + 'cache-view') || false,
-                    type: $this.attr(_dataPrefix + 'type') || 'json',
-                    selector: $this.attr(_dataPrefix + 'selector') || false,
-                    template: Handlebars.templates[$this.attr(_dataPrefix + 'template')] || false,
-                    partial: Handlebars.partials[$this.attr(_dataPrefix + 'partial')] || false,
-                    events: $this.attr(_dataPrefix + 'publish') ? $this.attr(_dataPrefix + 'publish').split(' ') : [],
-                    requestData: $.extend({}, _this.serializeObject($this), JSON.parse($this.attr(_dataPrefix + 'form') || '{}')),
+                    href: $origin.attr('href'),
+                    url: $origin.attr(_dataPrefix + 'url') || $origin.attr('action'),
+                    method: ($origin.attr(_dataPrefix + 'method') || $origin.attr('method') || 'get').toLowerCase(),
+                    cacheRequest: $origin.attr(_dataPrefix + 'cache-request') || false,
+                    cacheResponse: $origin.attr(_dataPrefix + 'cache-response') || false,
+                    cacheView: $origin.attr(_dataPrefix + 'cache-view') || false,
+                    type: $origin.attr(_dataPrefix + 'type') || 'json',
+                    selector: $origin.attr(_dataPrefix + 'selector') || false,
+                    template: Handlebars.templates[$origin.attr(_dataPrefix + 'template')] || false,
+                    partial: Handlebars.partials[$origin.attr(_dataPrefix + 'partial')] || false,
+                    events: $origin.attr(_dataPrefix + 'publish') ? $origin.attr(_dataPrefix + 'publish').split(' ') : [],
+                    requestData: $.extend({}, _this.serializeObject($origin), JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')),
                     templateData: {
                         app: _this.appData,
-                        view: $this.data()
+                        view: $origin.data()
                     }
                 },
                 publishEvents = function(args, namespace) {
@@ -264,8 +263,8 @@
                         _this.publish(event_name, args || []);
                     }
                 },
-                templateName = $this.attr(_dataPrefix + 'template') || $this.attr(_dataPrefix + 'partial'),
-                cacheKey = api.url + $this.serialize(),
+                templateName = $origin.attr(_dataPrefix + 'template') || $origin.attr(_dataPrefix + 'partial'),
+                cacheKey = api.url + $origin.serialize(),
                 $selector, $loading, $load, html, templateData, params;
 
             // Add the request payload to the template data under "request" namespace
@@ -281,14 +280,14 @@
                 return;
             }
 
-            api.loading = ($this.attr(_dataPrefix + 'loading') ? JSON.parse($this.attr(_dataPrefix + 'loading')) : (api.method === 'get'));
+            api.loading = ($origin.attr(_dataPrefix + 'loading') ? JSON.parse($origin.attr(_dataPrefix + 'loading')) : true);
 
             // Begin template sequence
             if (api.url || api.selector && (api.template || api.partial)) {
                 $selector = $(api.selector);
-                $loading = $this.find('[' + _dataPrefix + 'role="loading"]');
+                $loading = $origin.find('[' + _dataPrefix + 'role="loading"]');
                 params = {
-                    $origin: $this,
+                    $origin: $origin,
                     $target: $selector,
                     api: api
                 };
@@ -301,7 +300,7 @@
                     _cache.view[api.selector][templateName].html !== null
                 ) {
                     html = _cache.view[api.selector][templateName].html;
-                    _cacheView($this, api, templateName);
+                    _cacheView($origin, api, templateName);
                     _options.apiBeforeRender(params);
                     $selector.html(html);
                     _options.apiAfterRender(params);
@@ -312,7 +311,7 @@
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
-                    _cacheView($this, api, templateName);
+                    _cacheView($origin, api, templateName);
                 }
 
                 _options.apiCallback(params);
@@ -323,7 +322,7 @@
                     return;
                 }
 
-                _cacheView($this, api, templateName);
+                _cacheView($origin, api, templateName);
 
                 if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
                     templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
@@ -336,6 +335,11 @@
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
                 }
+
+                // Begin AJAX sequence
+
+                // Set selector as busy, and show loading indicator if available
+                $selector.attr('aria-busy', true);
                 if (api.loading) {
                     $load = $(_options.loadingHtml).attr(_dataPrefix + 'role', 'loading');
                     $selector.empty().prepend($load);
@@ -362,7 +366,7 @@
                         _options.xhrBeforeSend({
                             jqXHR: jqXHR,
                             settings: settings,
-                            $origin: $this,
+                            $origin: $origin,
                             $target: $selector,
                             api: api
                         });
@@ -374,7 +378,7 @@
                             response: response,
                             status: status,
                             jqXHR: jqXHR,
-                            $origin: $this,
+                            $origin: $origin,
                             $target: $selector,
                             html: undefined, // filled in below after HTML is rendered
                             api: $.extend(api, { templateData: templateData })
@@ -395,7 +399,7 @@
                             publishEvents([params]);
                         });
                     } else {
-                        if ($selector.length && (api.method === 'get' || $loading.length)) {
+                        if ($selector.length) {
                             _options.apiBeforeRender(params);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             params.html = html;
@@ -419,7 +423,7 @@
                         jqXHR: jqXHR,
                         status: status,
                         error: error,
-                        $origin: $this,
+                        $origin: $origin,
                         $target: $selector,
                         api: api
                     });
@@ -430,10 +434,12 @@
                         jqXHR: (status === 'success') ? jqXHRorError : responseORjqXHR,
                         status: status,
                         error: success ? null : jqXHRorError,
-                        $origin: $this,
+                        $origin: $origin,
                         $target: $selector,
                         api: api
                     });
+                    // Remove selector busy status
+                    $selector.removeAttr('aria-busy');
                 });
             }
         };
