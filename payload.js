@@ -376,7 +376,7 @@
                             jqXHR: jqXHR,
                             $origin: $this,
                             $target: $selector,
-                            html: undefined, // filled in by render_html()
+                            html: undefined, // filled in below after HTML is rendered
                             api: $.extend(api, { templateData: templateData })
                         },
                         xhrDone = function() {
@@ -388,6 +388,7 @@
                         $selector.find(_selectors.LOADING).first().fadeOut(100, function() {
                             _options.apiBeforeRender(params);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
+                            params.html = html;
                             $selector.html(html);
                             _options.apiAfterRender(params);
                             xhrDone();
@@ -397,6 +398,7 @@
                         if ($selector.length && (api.method === 'get' || $loading.length)) {
                             _options.apiBeforeRender(params);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
+                            params.html = html;
                             $selector.html(html);
                             _options.apiAfterRender(params);
                         }
