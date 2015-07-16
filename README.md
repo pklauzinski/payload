@@ -87,10 +87,10 @@ Note that DOM objects must either perform an API call by having "api.url" set (s
 
 ### API Callback Params
 
-When invoking events or invoking callbacks for apiCallback, apiBeforeRender, and apiAfterRender the a "params" parameter is passed to the handler. It contains the following properies:
+When invoking events or invoking callbacks for apiCallback, apiBeforeRender, and apiAfterRender a `params` argument is passed to the handler. It contains the following properties:
 
-  - **$origin** - The object the Payload.js API originated on.
-  - **target** - The object pointed to by $origin's [data-selector] attribute.
+  - **$origin** - The jQuery object the Payload.js API originated on.
+  - **$target** - The jQuery object pointed to by $origin's `[data-selector]` attribute.
   - **api** - The API object described in "API Object and Data Attributes".
 
 If the API call involves making an XHR request the following additional attributes are abilable on the "params" object:

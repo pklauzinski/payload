@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.2.3
+ * @version 0.2.4
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -51,6 +51,7 @@
                 loadingHtml: '<small>Loading...</small>',
                 loadingDefault: true,
                 subscribers: [], // [ { events: [], methods: [] } ]
+                timeout: false,
                 useHref: false,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
@@ -73,7 +74,19 @@
                 view: {}
             },
 
-            _$events = $({}),
+            _payloadEvents = [
+                'init',
+                'apiBeforeRender',
+                'apiAfterRender',
+                'xhrAlways',
+                'xhrBeforeSend',
+                'xhrDone',
+                'xhrFail'
+            ],
+
+            _$payloadEvents = $({}),
+
+            _$userEvents = $({}),
 
             /**
              * Safe console debug
@@ -113,6 +126,7 @@
                 if (_options.subscribers.length) {
                     _this.addSubscribers(_options.subscribers);
                 }
+                _pub('init');
                 return _this;
             },
 
@@ -121,13 +135,13 @@
                 _delegateClicks();
             },
 
-            // Delegation methods
+        // Delegation methods
 
             _delegateApiRequests = function() {
                 _$context.on('click.api-request auto-load.api-request', _selectors.API_LINK, function(e) {
                     var $this = $(this);
                     e.preventDefault();
-                    if ($this.prop('disabled') || $this.hasClass('disabled') || $this.data('disabled')) {
+                    if ($this.prop('disabled') || $this.hasClass('disabled')) {
                         return;
                     }
                     if (_options.apiOnClick($this, e)) {
@@ -193,16 +207,59 @@
                 } else {
                     _lastTemplate = null;
                 }
+            },
+
+            /**
+             * Publish Payload internal event
+             *
+             * @private
+             */
+            _pub = function() {
+                _$payloadEvents.trigger.apply(_$payloadEvents, arguments);
+            },
+
+            /**
+             * Subscribe to Payload internal event
+             *
+             * @private
+             */
+            _sub = function() {
+                _$payloadEvents.on.apply(_$payloadEvents, arguments);
+            },
+
+            /**
+             * Unsubscribe from Payload internal event
+             *
+             * @private
+             */
+            _unsub = function() {
+                _$payloadEvents.off.apply(_$payloadEvents, arguments);
             }
 
-            ; // End var declaration
+            ; // End private var declaration
 
         /**
+         *
          * Public vars and methods
+         *
          */
 
         this.options = _options;
 
+        /**
+         * Stores registered Payload components and gives public access to them, if needed
+         * Additionally, if a component is unregistered, it will be removed from this object
+         *
+         * @type {{}}
+         */
+        this.components = {};
+
+        /**
+         * This object is supplied for storing custom data within your app
+         * It is exposed within templates via the "app" namespace
+         *
+         * @type {{}}
+         */
         this.appData = {};
 
         this.cache = _cache;
@@ -235,6 +292,14 @@
             return $.extend(_options, opts);
         };
 
+        /**
+         * Make an API request via the given jQuery $origin object
+         * This method is called internally when a Payload API object is interacted with in the DOM
+         * It may also be called directly by supplying any jQuery object with the appropriate attributes
+         *
+         * @param $origin
+         * @todo - break this up into more granular methods
+         */
         this.apiRequest = function($origin) {
             var api = {
                     href: $origin.attr('href'),
@@ -249,6 +314,7 @@
                     partial: Handlebars.partials[$origin.attr(_dataPrefix + 'partial')] || false,
                     events: $origin.attr(_dataPrefix + 'publish') ? $origin.attr(_dataPrefix + 'publish').split(' ') : [],
                     requestData: $.extend({}, _this.serializeObject($origin), JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')),
+                    timeout: $origin.attr(_dataPrefix + 'timeout') || _options.timeout,
                     templateData: {
                         app: _this.appData,
                         view: $origin.data()
@@ -256,7 +322,7 @@
                 },
                 publishEvents = function(args, namespace) {
                     var i = 0, event_name;
-                    for (i; i < api.events.length; i++) {
+                    for (; i < api.events.length; i++) {
                         event_name = api.events[i];
                         if (namespace) {
                             event_name += '.' + namespace;
@@ -304,15 +370,19 @@
                     html = _cache.view[api.selector][templateName].html;
                     _cacheView($origin, api, templateName);
                     _options.apiBeforeRender(params);
+                    _pub('apiBeforeRender', [params]);
                     $selector.html(html);
                     _options.apiAfterRender(params);
+                    _pub('apiAfterRender', [params]);
                     _cache.view[api.selector][templateName].done();
                     api.url = false;
                 } else if (!api.url) {
                     _options.apiBeforeRender(params);
+                    _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
+                    _pub('apiAfterRender', [params]);
                     _cacheView($origin, api, templateName);
                 }
 
@@ -329,9 +399,11 @@
                 if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
                     templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
                     _options.apiBeforeRender(params);
+                    _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
+                    _pub('apiAfterRender', [params]);
                     _cache.response[cacheKey].done();
                     publishEvents([params]);
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
@@ -361,17 +433,20 @@
                     data: (api.method === 'get') ? api.requestData : JSON.stringify(api.requestData),
                     contentType: 'application/json',
                     cache: api.cacheRequest,
+                    timeout: api.timeout,
                     beforeSend: function(jqXHR, settings) {
-                        if (_options.apiAccessToken) {
-                            jqXHR.setRequestHeader('Authorization', 'Bearer ' + _options.apiAccessToken);
-                        }
-                        _options.xhrBeforeSend({
+                        var params = {
                             jqXHR: jqXHR,
                             settings: settings,
                             $origin: $origin,
                             $target: $selector,
                             api: api
-                        });
+                        };
+                        if (_options.apiAccessToken) {
+                            jqXHR.setRequestHeader('Authorization', 'Bearer ' + _options.apiAccessToken);
+                        }
+                        _options.xhrBeforeSend(params);
+                        _pub('xhrBeforeSend', [params]);
                     }
                 }).done(function(response, status, jqXHR) {
                     var responseData = _options.apiResponseParent ? response[_options.apiResponseParent] : response,
@@ -387,26 +462,31 @@
                         },
                         xhrDone = function() {
                             _options.xhrDone(params);
+                            _pub('xhrDone', [params]);
                             _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                         };
 
                     if ($selector.length && api.loading) {
                         $selector.find(_selectors.LOADING).first().fadeOut(100, function() {
                             _options.apiBeforeRender(params);
+                            _pub('apiBeforeRender', [params]);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             params.html = html;
                             $selector.html(html);
                             _options.apiAfterRender(params);
+                            _pub('apiAfterRender', [params]);
                             xhrDone();
                             publishEvents([params]);
                         });
                     } else {
                         if ($selector.length) {
                             _options.apiBeforeRender(params);
+                            _pub('apiBeforeRender', [params]);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             params.html = html;
                             $selector.html(html);
                             _options.apiAfterRender(params);
+                            _pub('apiAfterRender', [params]);
                         }
                         xhrDone();
                         publishEvents([params]);
@@ -421,25 +501,30 @@
                         _cache.view[api.selector][templateName].done = xhrDone;
                     }
                 }).fail(function(jqXHR, status, error) {
-                    _options.xhrFail({
+                    var params = {
                         jqXHR: jqXHR,
                         status: status,
                         error: error,
                         $origin: $origin,
                         $target: $selector,
                         api: api
-                    });
+                    };
+                    _options.xhrFail(params);
+                    _pub('xhrFail', [params]);
                 }).always(function(responseORjqXHR, status, jqXHRorError) {
-                    var success = (status === 'success');
-                    _options.xhrAlways({
-                        response: success ? responseORjqXHR : null,
-                        jqXHR: (status === 'success') ? jqXHRorError : responseORjqXHR,
-                        status: status,
-                        error: success ? null : jqXHRorError,
-                        $origin: $origin,
-                        $target: $selector,
-                        api: api
-                    });
+                    var success = (status === 'success'),
+                        params = {
+                            response: success ? responseORjqXHR : null,
+                            jqXHR: (status === 'success') ? jqXHRorError : responseORjqXHR,
+                            status: status,
+                            error: success ? null : jqXHRorError,
+                            $origin: $origin,
+                            $target: $selector,
+                            api: api
+                        };
+
+                    _options.xhrAlways(params);
+                    _pub('xhrAlways', [params]);
                     // Remove selector busy status
                     $selector.removeAttr('aria-busy');
                 });
@@ -468,7 +553,7 @@
          */
         this.publish = function() {
             _debug('info', '"' + arguments[0] + '"', 'event published.');
-            _$events.trigger.apply(_$events, arguments);
+            _$userEvents.trigger.apply(_$userEvents, arguments);
         };
 
         /**
@@ -476,7 +561,7 @@
          * based on https://github.com/cowboy/jquery-tiny-pubsub
          */
         this.subscribe = function() {
-            _$events.on.apply(_$events, arguments);
+            _$userEvents.on.apply(_$userEvents, arguments);
         };
 
         /**
@@ -484,11 +569,11 @@
          * based on https://github.com/cowboy/jquery-tiny-pubsub
          */
         this.unsubscribe = function() {
-            _$events.off.apply(_$events, arguments);
+            _$userEvents.off.apply(_$userEvents, arguments);
         };
 
         /**
-         * Subscribe events to given methods in array of { events: [], methods: [] } objects
+         * Subscribe custom events to given methods in array of { events: [], methods: [] } objects
          *
          * @param subscribers
          * @public
@@ -566,8 +651,46 @@
                     delete _cache.view[key];
                 }
             } else {
-                return _error('Payload.clearCache() - Incorrect type defined');
+                return _error('clearCache() - Incorrect type defined');
             }
+        };
+
+        /**
+         * Register a Payload component by supplying the name (str) and options (obj)
+         *
+         * @param name
+         * @param options
+         * @returns {*}
+         */
+        this.registerComponent = function(name, options) {
+            var i = 0;
+            if (_this.components[name] !== undefined) {
+                return _error('registerComponent() - "' + name + '" component already exists');
+            }
+            if (options === undefined) {
+                return _error('registerComponent() - "' + name + '" component options not defined');
+            }
+            _this.components[name] = options;
+            for (; i < _payloadEvents.length; i++) {
+                if (options[_payloadEvents[i]]) {
+                    _sub(_payloadEvents[i] + '.' + name, options[_payloadEvents[i]]);
+                }
+            }
+            return _this.components[name];
+        };
+
+        /**
+         * Unregister a previously registered component by supplying the name (str)
+         *
+         * @param name
+         * @returns {boolean}
+         */
+        this.unregisterComponent = function(name) {
+            if (_this.components[name] === undefined) {
+                return _error('unregisterComponent() - "' + name + '" component does not exist');
+            }
+            _unsub('.' + name);
+            return delete _this.components[name];
         };
 
     };
