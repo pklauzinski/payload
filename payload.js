@@ -52,7 +52,6 @@
                 loadingDefault: true,
                 subscribers: [], // [ { events: [], methods: [] } ]
                 timeout: false,
-                useHref: false,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
                 xhrDone: $.noop,
@@ -398,6 +397,7 @@
 
                 if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
                     templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
+                    params.response = _cache.response[cacheKey].response;
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
@@ -494,6 +494,7 @@
 
                     if (api.cacheResponse) {
                         _cache.response[cacheKey] = {
+                            response: response,
                             data: templateData,
                             done: xhrDone
                         };
