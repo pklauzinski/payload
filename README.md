@@ -30,12 +30,12 @@ Payload.js selectors can also contain the "data-auto-load" attribute to cause th
   - **apiAfterRender** (params) - Invoked just after rendering a template or fetching cached HTML.
   - **apiResponseParent** - If set, unserialized XHR response objects will use the specified property as the response data (e.g. if all API responses contain '{"response": ...}').
   - **context** - Payload.js will only monitor events on the given DOM object. Defaults to "document.body".
-  - **dataNamespace** - If set, overrides the attribute prefix from the default of "data".
+  - **dataNamespace** - If set, Payload will look for "data-$prefix-" attributes instead of "data-" attributes.
   - **debug** -
   - **loadingHtml** - The default HTML to insert into API $targets with the "loading" flag set (default: '<small>Loading...</small>')
   - **loadingDefault** - If set to false, the API $target will not be cleared at the start (default: true)
   - **subscribers** - List of events and callback functions to pass to "Payload.addSubscribers" method.
-  - **useHref** - Currently unused
+  - **timeout** - Timeout value, in seconds, before XHR requests are aborted.
   - **xhrAlways** (params) - Called after each XHR request, regardless of success/failure.
   - **xhrBeforeSend** (params) - Called before each XHR request.
   - **xhrDone** (params) - Called after each successful XHR request.
