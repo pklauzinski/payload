@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.2.4
+ * @version 0.2.6
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -330,16 +330,18 @@
                     }
                 },
                 templateName = $origin.attr(_dataPrefix + 'template') || $origin.attr(_dataPrefix + 'partial'),
-                cacheKey = api.url + $origin.serialize(),
-                $selector, $loading, $load, html, templateData, params;
+                api_request, $selector, $loading, $load, html, templateData, params;
 
             // Add the request payload to the template data under "request" namespace
             api.templateData.request = $.extend({
                 href: api.href,
                 url: api.url,
                 method: api.method,
-                cacheKey: cacheKey
+                cacheKey: api.url + $origin.serialize()
             }, api.requestData);
+            // Grab a reference to its easier to refer to the cache key
+            // ... which may be modified by the "pre" events below
+            api_request = api.templateData.request;
 
             // If caching is invoked and this is the last template loaded, do nothing
             if (api.cacheView && _lastTemplate === templateName) {
@@ -395,16 +397,20 @@
 
                 _cacheView($origin, api, templateName);
 
-                if (api.cacheResponse && _cache.response[cacheKey] && _cache.response[cacheKey].data && _cache.response[cacheKey].done) {
-                    templateData = $.extend({}, _cache.response[cacheKey].data, api.templateData);
-                    params.response = _cache.response[cacheKey].response;
+                if (api.cacheResponse &&
+                    _cache.response[api_request.cacheKey] &&
+                    _cache.response[api_request.cacheKey].data &&
+                    _cache.response[api_request.cacheKey].done
+                ) {
+                    templateData = $.extend({}, _cache.response[api_request.cacheKey].data, api.templateData);
+                    params.response = _cache.response[api_request.cacheKey].response;
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
                     _pub('apiAfterRender', [params]);
-                    _cache.response[cacheKey].done();
+                    _cache.response[api_request.cacheKey].done();
                     publishEvents([params]);
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
@@ -493,7 +499,7 @@
                     }
 
                     if (api.cacheResponse) {
-                        _cache.response[cacheKey] = {
+                        _cache.response[api_request.cacheKey] = {
                             response: response,
                             data: templateData,
                             done: xhrDone
