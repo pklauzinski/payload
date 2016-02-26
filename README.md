@@ -1,3 +1,5 @@
+https://travis-ci.org/payloadjs/payload.svg?branch=master
+
 # Overview
 
 Payload.js creates a global "Payload" object to automate API requests and rendering Handlebars template. Payload.js's behaviors are controlled at by initializing the object by calling "Payload.deliver()" and by setting various HTML data attributes on DOM objects.
