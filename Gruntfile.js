@@ -15,21 +15,27 @@ module.exports = function(grunt) {
                 eqeqeq: true,
                 eqnull: true,
                 browser: true,
-                newcap: false,
-                es3: true,
                 forin: true,
-                indent: 4,
                 unused: 'vars',
                 strict: true,
                 trailing: true,
-                quotmark: 'single',
                 latedef: true,
                 globals: {
                     jQuery: true
                 }
             },
             files: {
-                src: ['Grunfile.js', 'payload.js']
+                src: ['Gruntfile.js', 'payload.js']
+            }
+        },
+
+        /**
+         * https://github.com/jscs-dev/grunt-jscs
+         */
+        jscs: {
+            src: ['Gruntfile.js', 'payload.js'],
+            options: {
+                config: '.jscsrc'
             }
         },
 
@@ -52,7 +58,9 @@ module.exports = function(grunt) {
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-jscs');
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
-    grunt.registerTask('default', ['jshint', 'uglify']);
+    grunt.registerTask('default', ['jshint', 'jscs', 'uglify']);
+    grunt.registerTask('test', ['jshint', 'jscs']);
 };

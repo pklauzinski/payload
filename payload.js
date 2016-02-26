@@ -1,12 +1,12 @@
 /*!
  * Payload.js Javascript Library
  *
- * Copyright (c) 2015, Philip Klauzinski (http://gui.ninja)
+ * Copyright (c) 2015-2016, Philip Klauzinski (http://gui.ninja)
  * Released under the MIT license
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.2.6
+ * @version 0.3.0
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -43,15 +43,17 @@
                 },
                 apiBeforeRender: $.noop,
                 apiAfterRender: $.noop,
-                apiAccessToken: false,
-                apiResponseParent: false,
+                apiAccessToken: '',
+                apiResponseParent: '',
                 context: document.body,
-                dataNamespace: false,
+                dataNamespace: '',
                 debug: false,
                 loadingHtml: '<small>Loading...</small>',
                 loadingDefault: true,
-                subscribers: [], // [ { events: [], methods: [] } ]
-                timeout: false,
+                partialsNamespace: Handlebars.partials,
+                subscribers: [], // [ {events: [], methods: [] } ]
+                templatesNamespace: Handlebars.templates,
+                timeout: 0,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
                 xhrDone: $.noop,
@@ -116,22 +118,31 @@
                 throw 'Payload.js: ' + text;
             },
 
-            _initialize = function() {
-                _$context = $(_options.context);
-                if (!_$context.length) {
-                    _error('Selector "' + _options.context + '" not found');
-                }
-                _initDelegatedBehaviors();
-                if (_options.subscribers.length) {
-                    _this.addSubscribers(_options.subscribers);
-                }
-                _pub('init');
-                return _this;
+            /**
+             * Publish Payload internal event
+             *
+             * @private
+             */
+            _pub = function() {
+                _$payloadEvents.trigger.apply(_$payloadEvents, arguments);
             },
 
-            _initDelegatedBehaviors = function() {
-                _delegateApiRequests();
-                _delegateClicks();
+            /**
+             * Subscribe to Payload internal event
+             *
+             * @private
+             */
+            _sub = function() {
+                _$payloadEvents.on.apply(_$payloadEvents, arguments);
+            },
+
+            /**
+             * Unsubscribe from Payload internal event
+             *
+             * @private
+             */
+            _unsub = function() {
+                _$payloadEvents.off.apply(_$payloadEvents, arguments);
             },
 
         // Delegation methods
@@ -163,6 +174,30 @@
                     e.preventDefault();
                     $click.click();
                 });
+            },
+
+            _initDelegatedBehaviors = function() {
+                _delegateApiRequests();
+                _delegateClicks();
+            },
+
+            /**
+             * Initialization
+             *
+             * @returns {Payload}
+             * @private
+             */
+            _initialize = function() {
+                _$context = $(_options.context);
+                if (!_$context.length) {
+                    _error('Selector "' + _options.context + '" not found');
+                }
+                _initDelegatedBehaviors();
+                if (_options.subscribers.length) {
+                    _this.addSubscribers(_options.subscribers);
+                }
+                _pub('init');
+                return _this;
             },
 
             /**
@@ -206,33 +241,6 @@
                 } else {
                     _lastTemplate = null;
                 }
-            },
-
-            /**
-             * Publish Payload internal event
-             *
-             * @private
-             */
-            _pub = function() {
-                _$payloadEvents.trigger.apply(_$payloadEvents, arguments);
-            },
-
-            /**
-             * Subscribe to Payload internal event
-             *
-             * @private
-             */
-            _sub = function() {
-                _$payloadEvents.on.apply(_$payloadEvents, arguments);
-            },
-
-            /**
-             * Unsubscribe from Payload internal event
-             *
-             * @private
-             */
-            _unsub = function() {
-                _$payloadEvents.off.apply(_$payloadEvents, arguments);
             }
 
             ; // End private var declaration
@@ -309,8 +317,8 @@
                     cacheView: $origin.attr(_dataPrefix + 'cache-view') || false,
                     type: $origin.attr(_dataPrefix + 'type') || 'json',
                     selector: $origin.attr(_dataPrefix + 'selector') || false,
-                    template: Handlebars.templates[$origin.attr(_dataPrefix + 'template')] || false,
-                    partial: Handlebars.partials[$origin.attr(_dataPrefix + 'partial')] || false,
+                    template: _options.templatesNamespace[$origin.attr(_dataPrefix + 'template')] || false,
+                    partial: _options.partialsNamespace[$origin.attr(_dataPrefix + 'partial')] || false,
                     events: $origin.attr(_dataPrefix + 'publish') ? $origin.attr(_dataPrefix + 'publish').split(' ') : [],
                     requestData: $.extend({}, _this.serializeObject($origin), JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')),
                     timeout: $origin.attr(_dataPrefix + 'timeout') || _options.timeout,
@@ -456,7 +464,7 @@
                     }
                 }).done(function(response, status, jqXHR) {
                     var responseData = _options.apiResponseParent ? response[_options.apiResponseParent] : response,
-                        templateData = $.extend({}, api.templateData, $.isArray(responseData) ? { data: responseData } : responseData),
+                        templateData = $.extend({}, api.templateData, $.isArray(responseData) ? {data: responseData} : responseData),
                         params = {
                             response: response,
                             status: status,
@@ -464,7 +472,7 @@
                             $origin: $origin,
                             $target: $selector,
                             html: undefined, // filled in below after HTML is rendered
-                            api: $.extend(api, { templateData: templateData })
+                            api: $.extend(api, {templateData: templateData})
                         },
                         xhrDone = function() {
                             _options.xhrDone(params);
@@ -580,7 +588,7 @@
         };
 
         /**
-         * Subscribe custom events to given methods in array of { events: [], methods: [] } objects
+         * Subscribe custom events to given methods in array of {events: [], methods: [] } objects
          *
          * @param subscribers
          * @public
