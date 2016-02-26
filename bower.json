@@ -1,7 +1,7 @@
 {
   "name": "payloadjs",
-  "version": "0.3.1",
-  "homepage": "https://github.com/payloadjs/payload",
+  "version": "0.3.2",
+  "homepage": "http://payloadjs.com",
   "authors": [
     {
       "name": "Philip Klauzinski",

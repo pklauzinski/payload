@@ -1,6 +1,6 @@
 {
   "name": "payloadjs",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "HTML5-data-driven behavioral layer designed to interact intuitively with REST APIs from within SPAs (single-page-applications) and mobile apps.",
   "main": "payload.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pklauzinski/payload.git"
+    "url": "https://github.com/payloadjs/payload.git"
   },
   "keywords": [
     "payload",
@@ -26,7 +26,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pklauzinski/payload/issues"
+    "url": "https://github.com/payloadjs/payload/issues"
   },
   "homepage": "http://payloadjs.com",
   "dependencies": {
