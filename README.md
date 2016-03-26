@@ -2,6 +2,8 @@
 
 # PayloadJS
 
+[![Join the chat at https://gitter.im/payloadjs/payload](https://badges.gitter.im/payloadjs/payload.svg)](https://gitter.im/payloadjs/payload?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Payload.js is a javascript single page application (SPA) driver that creates a global `Payload` object to automate API requests and render Handlebars templates. Payload.js's behaviors are controlled at by initializing the object by calling `Payload.deliver()` and by setting various HTML data attributes on DOM objects.
 
 When DOM objects imbued with Payload.js' selectors are activated an "API request" is performed, which involves making an XHR request and/or rendering a template. Payload.js also contains template/response caching and an event system as additional means of integration.
