@@ -40,18 +40,25 @@ module.exports = function(grunt) {
         },
 
         /**
-         * https://github.com/gruntjs/grunt-contrib-uglify
+         * https://github.com/vojtajina/grunt-bump
          */
-        uglify: {
+        bump: {
             options: {
-                preserveComments: 'some'
-            },
-            payload: {
-                files: {
-                    'payload.min.js': [
-                        'payload.js'
-                    ]
-                }
+                files: ['package.json', 'bower.json', 'payload.js'],
+                updateConfigs: ['pkg'],
+                commit: true,
+                commitMessage: 'Release v%VERSION%',
+                commitFiles: ['package.json'],
+                createTag: true,
+                tagName: 'v%VERSION%',
+                tagMessage: 'Version %VERSION%',
+                push: 'tag',
+                pushTo: 'upstream',
+                gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
+                globalReplace: false,
+                prereleaseName: false,
+                metadata: '',
+                regExp: false
             }
         }
 
@@ -59,8 +66,8 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-jscs');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-bump');
 
-    grunt.registerTask('default', ['jshint', 'jscs', 'uglify']);
+    grunt.registerTask('default', ['jshint', 'jscs']);
     grunt.registerTask('test', ['jshint', 'jscs']);
 };

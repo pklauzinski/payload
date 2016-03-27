@@ -1,12 +1,13 @@
 /*!
- * Payload.js Javascript Library
+ * Payload.js - Javascript Single Page Application Driver
+ * http://payloadjs.com
  *
  * Copyright (c) 2015-2016, Philip Klauzinski (http://gui.ninja)
  * Released under the MIT license
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.3.2
+ * @version 0.3.3
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -29,11 +30,40 @@
 
     'use strict';
 
+    /**
+     * Payload.js constructor function
+     *
+     * @constructor
+     */
     var Payload = function() {
 
-        var _this = this, _$context, _lastTemplate,
+        var _this = this,
 
+            /**
+             * Will be set to given application DOM context
+             *
+             * @private
+             */
+            _$context,
+
+            /**
+             * Track the name of the last template that was loaded
+             *
+             * @type {string}
+             * @private
+             */
+            _lastTemplate = '',
+
+            /**
+             * Default options
+             *
+             * @type {{}}
+             * @private
+             */
             _options = {
+                apiAccessToken: '',
+                apiAfterRender: $.noop,
+                apiBeforeRender: $.noop,
                 apiCallback: $.noop,
                 apiOnClick: function() {
                     return true;
@@ -41,15 +71,12 @@
                 apiOnSubmit: function() {
                     return true;
                 },
-                apiBeforeRender: $.noop,
-                apiAfterRender: $.noop,
-                apiAccessToken: '',
                 apiResponseParent: '',
                 context: document.body,
                 dataNamespace: '',
                 debug: false,
-                loadingHtml: '<small>Loading...</small>',
                 loadingDefault: true,
+                loadingHtml: '<small>Loading...</small>',
                 partialsNamespace: Handlebars.partials,
                 subscribers: [], // [ {events: [], methods: [] } ]
                 templatesNamespace: Handlebars.templates,
@@ -63,8 +90,8 @@
             _dataPrefix = 'data-' + (_options.dataNamespace ? $.trim(_options.dataNamespace) + '-' : ''),
 
             _selectors = {
-                API_LINK: 'a[' + _dataPrefix + 'selector],a[' + _dataPrefix + 'url],button[' + _dataPrefix + 'selector],button[' + _dataPrefix + 'url]',
                 API_FORM: 'form[' + _dataPrefix + 'selector],form[' + _dataPrefix + 'url]',
+                API_LINK: 'a[' + _dataPrefix + 'selector],a[' + _dataPrefix + 'url],button[' + _dataPrefix + 'selector],button[' + _dataPrefix + 'url]',
                 AUTO_LOAD: '[' + _dataPrefix + 'auto-load="true"]',
                 CLICK: '[' + _dataPrefix + 'click]',
                 LOADING: '[' + _dataPrefix + 'role="loading"]'
@@ -91,7 +118,7 @@
 
             /**
              * Safe console debug
-             * http://klauzinski.com/javascript/safe-firebug-console-in-javascript
+             * http://webtopian.com/safe-firebug-console-in-javascript
              *
              * @param m
              * @private
@@ -114,6 +141,12 @@
                 }
             },
 
+            /**
+             * Throw Payload.js specific error
+             *
+             * @param text
+             * @private
+             */
             _error = function(text) {
                 throw 'Payload.js: ' + text;
             },
@@ -210,7 +243,8 @@
              */
             _cacheView = function($origin, api, templateName) {
                 var selector = api.selector,
-                    $selector = $(selector), key, current;
+                    $selector = $(selector),
+                    key, current;
 
                 if ($origin.closest(selector).length) {
                     return;
@@ -241,6 +275,26 @@
                 } else {
                     _lastTemplate = null;
                 }
+            },
+
+            /**
+             * Publish the user defined events for a given API request
+             *
+             * @param params
+             * @param namespace
+             * @private
+             */
+            _publishUserEvents = function(params, namespace) {
+                var i = 0,
+                    event_name;
+
+                for (; i < params.api.events.length; i++) {
+                    event_name = params.api.events[i];
+                    if (namespace) {
+                        event_name += '.' + namespace;
+                    }
+                    _this.publish(event_name, [params] || []);
+                }
             }
 
             ; // End private var declaration
@@ -269,8 +323,18 @@
          */
         this.appData = {};
 
+        /**
+         * Expose the internal _cache object for external editing
+         *
+         * @type {{response: {}, view: {}}}
+         */
         this.cache = _cache;
 
+        /**
+         * Expose the internal _debug method for external use
+         *
+         * @type {_debug}
+         */
         this.debug = _debug;
 
         /**
@@ -327,16 +391,6 @@
                         view: $origin.data()
                     }
                 },
-                publishEvents = function(args, namespace) {
-                    var i = 0, event_name;
-                    for (; i < api.events.length; i++) {
-                        event_name = api.events[i];
-                        if (namespace) {
-                            event_name += '.' + namespace;
-                        }
-                        _this.publish(event_name, args || []);
-                    }
-                },
                 templateName = $origin.attr(_dataPrefix + 'template') || $origin.attr(_dataPrefix + 'partial'),
                 api_request, $selector, $loading, $load, html, templateData, params;
 
@@ -369,7 +423,7 @@
                     api: api
                 };
                 // fire off a ".pre" name-spaced event to allow last-minute setup to occur
-                publishEvents([params], 'pre');
+                _publishUserEvents(params, 'pre');
 
                 if (api.cacheView &&
                     _cache.view[api.selector] &&
@@ -398,7 +452,7 @@
                 _options.apiCallback(params);
 
                 if (!api.url) {
-                    publishEvents([params]);
+                    _publishUserEvents(params);
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
                 }
@@ -419,7 +473,7 @@
                     _options.apiAfterRender(params);
                     _pub('apiAfterRender', [params]);
                     _cache.response[api_request.cacheKey].done();
-                    publishEvents([params]);
+                    _publishUserEvents(params);
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
                 }
@@ -490,7 +544,7 @@
                             _options.apiAfterRender(params);
                             _pub('apiAfterRender', [params]);
                             xhrDone();
-                            publishEvents([params]);
+                            _publishUserEvents(params);
                         });
                     } else {
                         if ($selector.length) {
@@ -503,7 +557,7 @@
                             _pub('apiAfterRender', [params]);
                         }
                         xhrDone();
-                        publishEvents([params]);
+                        _publishUserEvents(params);
                     }
 
                     if (api.cacheResponse) {
@@ -588,7 +642,7 @@
         };
 
         /**
-         * Subscribe custom events to given methods in array of {events: [], methods: [] } objects
+         * Subscribe custom events to given methods in array of {events: [], methods: []} objects
          *
          * @param subscribers
          * @public
@@ -671,7 +725,7 @@
         };
 
         /**
-         * Register a Payload component by supplying the name (str) and options (obj)
+         * Register a Payload.js component by supplying the name (str) and options (obj)
          *
          * @param name
          * @param options
@@ -695,7 +749,7 @@
         };
 
         /**
-         * Unregister a previously registered component by supplying the name (str)
+         * Unregister a previously registered Payload.js component by supplying the name (str)
          *
          * @param name
          * @returns {boolean}
