@@ -33,15 +33,15 @@ module.exports = function(grunt) {
          */
         bump: {
             options: {
-                files: ['package.json', 'bower.json', 'payload.js'],
+                files: ['package.json', 'bower.json'],
                 updateConfigs: ['pkg'],
                 commit: true,
                 commitMessage: 'Release version %VERSION%',
-                commitFiles: '-a',
+                commitFiles: ['.'],
                 createTag: true,
                 tagName: 'v%VERSION%',
                 tagMessage: 'Release version %VERSION%',
-                push: false,
+                push: true,
                 pushTo: 'upstream',
                 gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
                 globalReplace: false,
