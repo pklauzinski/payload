@@ -117,6 +117,15 @@
             _$userEvents = $({}),
 
             /**
+             * Stores registered Payload components
+             * If a component is unregistered, it will be removed from this object
+             *
+             * @type {{}}
+             * @private
+             */
+            _components = {},
+
+            /**
              * Safe console debug
              * http://webtopian.com/safe-firebug-console-in-javascript
              *
@@ -229,7 +238,6 @@
                 if (_options.subscribers.length) {
                     _this.addSubscribers(_options.subscribers);
                 }
-                _pub('init');
                 return _this;
             },
 
@@ -246,7 +254,7 @@
                     $selector = $(selector),
                     key, current;
 
-                if ($origin.closest(selector).length) {
+                if (templateName === _lastTemplate && $origin.closest(selector).length) {
                     return;
                 }
 
@@ -733,19 +741,20 @@
          */
         this.registerComponent = function(name, options) {
             var i = 0;
-            if (_this.components[name] !== undefined) {
+            if (_components[name] !== undefined) {
                 return _error('registerComponent() - "' + name + '" component already exists');
             }
             if (options === undefined) {
                 return _error('registerComponent() - "' + name + '" component options not defined');
             }
-            _this.components[name] = options;
+            _components[name] = options;
             for (; i < _payloadEvents.length; i++) {
                 if (options[_payloadEvents[i]]) {
                     _sub(_payloadEvents[i] + '.' + name, options[_payloadEvents[i]]);
                 }
             }
-            return _this.components[name];
+            _pub('init.' + name);
+            return _components[name];
         };
 
         /**
@@ -755,11 +764,11 @@
          * @returns {boolean}
          */
         this.unregisterComponent = function(name) {
-            if (_this.components[name] === undefined) {
+            if (_components[name] === undefined) {
                 return _error('unregisterComponent() - "' + name + '" component does not exist');
             }
             _unsub('.' + name);
-            return delete _this.components[name];
+            return delete _components[name];
         };
 
     };

@@ -11,18 +11,7 @@ module.exports = function(grunt) {
          */
         jshint: {
             options: {
-                curly: true,
-                eqeqeq: true,
-                eqnull: true,
-                browser: true,
-                forin: true,
-                unused: 'vars',
-                strict: true,
-                trailing: true,
-                latedef: true,
-                globals: {
-                    jQuery: true
-                }
+                jshintrc: true
             },
             files: {
                 src: ['Gruntfile.js', 'payload.js']
@@ -47,12 +36,12 @@ module.exports = function(grunt) {
                 files: ['package.json', 'bower.json', 'payload.js'],
                 updateConfigs: ['pkg'],
                 commit: true,
-                commitMessage: 'Release v%VERSION%',
-                commitFiles: ['package.json'],
+                commitMessage: 'Release version %VERSION%',
+                commitFiles: '-a',
                 createTag: true,
                 tagName: 'v%VERSION%',
-                tagMessage: 'Version %VERSION%',
-                push: 'tag',
+                tagMessage: 'Release version %VERSION%',
+                push: false,
                 pushTo: 'upstream',
                 gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
                 globalReplace: false,

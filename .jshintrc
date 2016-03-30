@@ -1,0 +1,14 @@
+{
+    "curly": true,
+    "eqeqeq": true,
+    "eqnull": true,
+    "browser": true,
+    "forin": true,
+    "unused": "vars",
+    "strict": true,
+    "trailing": true,
+    "latedef": true,
+    "globals": {
+        "jQuery": true
+    }
+}
