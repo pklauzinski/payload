@@ -187,6 +187,63 @@
             _unsub = function() {
                 _$payloadEvents.off.apply(_$payloadEvents, arguments);
             },
+            /**
+             * Internal JSON API for localStorage
+             *
+             * @type {{}}
+             * @private
+             */
+            _storage = {
+                /**
+                 * Safely store obj to localStorage under specified id
+                 *
+                 * @param id
+                 * @param obj
+                 */
+                set: function(id, obj) {
+                    if (window.localStorage && localStorage.setItem) {
+                        try {
+                            localStorage.setItem(id, JSON.stringify(obj));
+                        } catch (err) {
+                            _this.debug('warn', err);
+                        }
+                    } else {
+                        Payload.debug('warn', 'localStorage not available');
+                    }
+                },
+
+                /**
+                 * Safely get object in localStorage under specified id
+                 *
+                 * @param id
+                 */
+                get: function(id) {
+                    var storage = {};
+                    if (window.localStorage && localStorage.getItem) {
+                        try {
+                            storage = JSON.parse(localStorage.getItem(id));
+                        } catch (err) {
+                            _this.debug(err);
+                        }
+                    } else {
+                        _this.debug('warn', 'localStorage not available');
+                    }
+                    return storage;
+                },
+
+                /**
+                 * Safely remove localStorage item under specified id
+                 *
+                 * @param id
+                 */
+                remove: function(id) {
+                    if (window.localStorage && localStorage.removeItem) {
+                        localStorage.removeItem(id);
+                    } else {
+                        _this.debug('warn', 'localStorage not available');
+                    }
+                }
+            },
 
         // Delegation methods
 
@@ -312,64 +369,6 @@
                         event_name += '.' + namespace;
                     }
                     _this.publish(event_name, [params] || []);
-                }
-            },
-
-            /**
-             * Internal JSON API for localStorage
-             *
-             * @type {{}}
-             * @private
-             */
-            _storage = {
-                /**
-                 * Safely store obj to localStorage under specified id
-                 *
-                 * @param id
-                 * @param obj
-                 */
-                set: function(id, obj) {
-                    if (window.localStorage && localStorage.setItem) {
-                        try {
-                            localStorage.setItem(id, JSON.stringify(obj));
-                        } catch (err) {
-                            _this.debug('warn', err);
-                        }
-                    } else {
-                        Payload.debug('warn', 'localStorage not available');
-                    }
-                },
-
-                /**
-                 * Safely get object in localStorage under specified id
-                 *
-                 * @param id
-                 */
-                get: function(id) {
-                    var storage = {};
-                    if (window.localStorage && localStorage.getItem) {
-                        try {
-                            storage = JSON.parse(localStorage.getItem(id));
-                        } catch (err) {
-                            _this.debug(err);
-                        }
-                    } else {
-                        _this.debug('warn', 'localStorage not available');
-                    }
-                    return storage;
-                },
-
-                /**
-                 * Safely remove localStorage item under specified id
-                 *
-                 * @param id
-                 */
-                remove: function(id) {
-                    if (window.localStorage && localStorage.removeItem) {
-                        localStorage.removeItem(id);
-                    } else {
-                        _this.debug('warn', 'localStorage not available');
-                    }
                 }
             }
 
