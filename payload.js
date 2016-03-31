@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.3.4
+ * @version 0.3.5
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -23,10 +23,10 @@
         module.exports = factory(require('jquery'));
     } else {
         // Browser globals
-        root.Payload = factory(root.jQuery);
+        root.Payload = factory(root, root.jQuery);
     }
 
-}(this, function($) {
+}(this, function(window, $) {
 
     'use strict';
 
@@ -72,12 +72,13 @@
                     return true;
                 },
                 apiResponseParent: '',
-                context: document.body,
+                context: document.body || null,
                 dataNamespace: '',
                 debug: false,
                 loadingDefault: true,
                 loadingHtml: '<small>Loading...</small>',
                 partialsNamespace: Handlebars.partials,
+                storeAppData: true,
                 subscribers: [], // [ {events: [], methods: [] } ]
                 templatesNamespace: Handlebars.templates,
                 timeout: 0,
@@ -218,9 +219,18 @@
                 });
             },
 
+            _delegateUnload = function() {
+                $(window).on('beforeunload.payload', function() {
+                    if (_options.storeAppData) {
+                        _storage.set('payload.appData', _this.appData);
+                    }
+                });
+            },
+
             _initDelegatedBehaviors = function() {
                 _delegateApiRequests();
                 _delegateClicks();
+                _delegateUnload();
             },
 
             /**
@@ -303,6 +313,64 @@
                     }
                     _this.publish(event_name, [params] || []);
                 }
+            },
+
+            /**
+             * Internal JSON API for localStorage
+             *
+             * @type {{}}
+             * @private
+             */
+            _storage = {
+                /**
+                 * Safely store obj to localStorage under specified id
+                 *
+                 * @param id
+                 * @param obj
+                 */
+                set: function(id, obj) {
+                    if (window.localStorage && localStorage.setItem) {
+                        try {
+                            localStorage.setItem(id, JSON.stringify(obj));
+                        } catch (err) {
+                            _this.debug('warn', err);
+                        }
+                    } else {
+                        Payload.debug('warn', 'localStorage not available');
+                    }
+                },
+
+                /**
+                 * Safely get object in localStorage under specified id
+                 *
+                 * @param id
+                 */
+                get: function(id) {
+                    var storage = {};
+                    if (window.localStorage && localStorage.getItem) {
+                        try {
+                            storage = JSON.parse(localStorage.getItem(id));
+                        } catch (err) {
+                            _this.debug(err);
+                        }
+                    } else {
+                        _this.debug('warn', 'localStorage not available');
+                    }
+                    return storage;
+                },
+
+                /**
+                 * Safely remove localStorage item under specified id
+                 *
+                 * @param id
+                 */
+                remove: function(id) {
+                    if (window.localStorage && localStorage.removeItem) {
+                        localStorage.removeItem(id);
+                    } else {
+                        _this.debug('warn', 'localStorage not available');
+                    }
+                }
             }
 
             ; // End private var declaration
@@ -329,7 +397,7 @@
          *
          * @type {{}}
          */
-        this.appData = {};
+        this.appData = _storage.get('payload.appData');
 
         /**
          * Expose the internal _cache object for external editing
@@ -344,6 +412,13 @@
          * @type {_debug}
          */
         this.debug = _debug;
+
+        /**
+         * Expose internal storage API
+         *
+         * @type {{}}
+         */
+        this.storage = _storage;
 
         /**
          * Deliver Payload API functionality to the specified context
