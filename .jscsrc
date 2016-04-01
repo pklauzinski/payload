@@ -33,8 +33,7 @@
         "do",
         "switch",
         "return",
-        "try",
-        "catch"
+        "try"
     ],
     "requireSpaceBeforeBinaryOperators": [
         "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", ">>>=",

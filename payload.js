@@ -23,10 +23,10 @@
         module.exports = factory(require('jquery'));
     } else {
         // Browser globals
-        root.Payload = factory(root, root.jQuery);
+        root.Payload = factory(root.jQuery);
     }
 
-}(this, function(window, $) {
+}(this, function($) {
 
     'use strict';
 
@@ -201,10 +201,10 @@
                  * @param obj
                  */
                 set: function(id, obj) {
-                    if (window.localStorage && localStorage.setItem) {
+                    if (localStorage && localStorage.setItem) {
                         try {
                             localStorage.setItem(id, JSON.stringify(obj));
-                        } catch (err) {
+                        } catch(err) {
                             _this.debug('warn', err);
                         }
                     } else {
@@ -219,10 +219,10 @@
                  */
                 get: function(id) {
                     var storage = {};
-                    if (window.localStorage && localStorage.getItem) {
+                    if (localStorage && localStorage.getItem) {
                         try {
                             storage = JSON.parse(localStorage.getItem(id));
-                        } catch (err) {
+                        } catch(err) {
                             _this.debug(err);
                         }
                     } else {
@@ -238,7 +238,7 @@
                  * @param id
                  */
                 remove: function(id) {
-                    if (window.localStorage && localStorage.removeItem) {
+                    if (localStorage && localStorage.removeItem) {
                         localStorage.removeItem(id);
                     } else {
                         _this.debug('warn', 'localStorage not available');
@@ -278,7 +278,7 @@
             },
 
             _delegateUnload = function() {
-                $(window).on('beforeunload.payload', function() {
+                $(typeof window === 'undefined' ? {} : window).on('beforeunload.payload', function() {
                     if (_options.storeAppData) {
                         _storage.set('payload.appData', _this.appData);
                     }
