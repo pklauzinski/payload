@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.3.8
+ * @version 0.3.9
  * @requires jQuery v1.7+
  * @preserve
  */
