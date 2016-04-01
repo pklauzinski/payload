@@ -23,6 +23,7 @@
     "requireMultipleVarDecl": "onevar",
     "disallowKeywordsOnNewLine": ["else"],
     "disallowSpaceBeforeComma": true,
+    "disallowTrailingComma": true,
 
     "requireSpaceAfterKeywords": [
         "if",
