@@ -228,7 +228,8 @@
                     } else {
                         _this.debug('warn', 'localStorage not available');
                     }
-                    return storage;
+                    // storage could be null, so return {} if so
+                    return storage || {};
                 },
 
                 /**
