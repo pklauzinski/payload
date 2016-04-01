@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.3.9
+ * @version 0.3.10
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -78,7 +78,6 @@
                 loadingDefault: true,
                 loadingHtml: '<small>Loading...</small>',
                 partialsNamespace: Handlebars.partials,
-                storeAppData: true,
                 subscribers: [], // [ {events: [], methods: [] } ]
                 templatesNamespace: Handlebars.templates,
                 timeout: 0,
@@ -210,6 +209,7 @@
                     } else {
                         _this.debug('warn', 'localStorage not available');
                     }
+                    return obj;
                 },
 
                 /**
@@ -240,8 +240,10 @@
                 remove: function(id) {
                     if (localStorage && localStorage.removeItem) {
                         localStorage.removeItem(id);
+                        return true;
                     } else {
                         _this.debug('warn', 'localStorage not available');
+                        return false;
                     }
                 }
             },
@@ -277,18 +279,9 @@
                 });
             },
 
-            _delegateUnload = function() {
-                $(typeof window === 'undefined' ? {} : window).on('beforeunload.payload', function() {
-                    if (_options.storeAppData) {
-                        _storage.set('payload.appData', _this.appData);
-                    }
-                });
-            },
-
             _initDelegatedBehaviors = function() {
                 _delegateApiRequests();
                 _delegateClicks();
-                _delegateUnload();
             },
 
             /**
@@ -305,9 +298,6 @@
                 _initDelegatedBehaviors();
                 if (_options.subscribers.length) {
                     _this.addSubscribers(_options.subscribers);
-                }
-                if (_options.storeAppData) {
-                    _this.appData = _storage.get('payload.appData');
                 }
                 return _this;
             },
