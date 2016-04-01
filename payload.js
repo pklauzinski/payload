@@ -208,7 +208,7 @@
                             _this.debug('warn', err);
                         }
                     } else {
-                        Payload.debug('warn', 'localStorage not available');
+                        _this.debug('warn', 'localStorage not available');
                     }
                 },
 
@@ -305,6 +305,9 @@
                 if (_options.subscribers.length) {
                     _this.addSubscribers(_options.subscribers);
                 }
+                if (_options.storeAppData) {
+                    _this.appData = _storage.get('payload.appData');
+                }
                 return _this;
             },
 
@@ -396,7 +399,7 @@
          *
          * @type {{}}
          */
-        this.appData = _storage.get('payload.appData');
+        this.appData = {};
 
         /**
          * Expose the internal _cache object for external editing
