@@ -260,7 +260,7 @@
                     if (_options.apiOnClick($this, e)) {
                         _this.apiRequest($this);
                     }
-                }).on('submit.api-request', _selectors.API_FORM, function(e) {
+                }).on('submit.api-request auto-load.api-request', _selectors.API_FORM, function(e) {
                     var $this = $(this);
                     e.preventDefault();
                     if (_options.apiOnSubmit($this, e)) {
