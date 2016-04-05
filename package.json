@@ -1,6 +1,6 @@
 {
   "name": "payloadjs",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "Payload.js is a javascript single page application (SPA) driver designed to interact intuitively with REST APIs from within web and mobile apps.",
   "main": "payload.js",
   "scripts": {
