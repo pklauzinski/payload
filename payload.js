@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.3.11
+ * @version 0.3.12
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -186,6 +186,7 @@
             _unsub = function() {
                 _$payloadEvents.off.apply(_$payloadEvents, arguments);
             },
+
             /**
              * Internal JSON API for localStorage
              *
@@ -587,7 +588,7 @@
                             api: api
                         };
                         if (_options.apiAccessToken) {
-                            jqXHR.setRequestHeader('Authorization', 'Bearer ' + _options.apiAccessToken);
+                            jqXHR.setRequestHeader('Authorization', _options.apiAccessToken);
                         }
                         _options.xhrBeforeSend(params);
                         _pub('xhrBeforeSend', [params]);
