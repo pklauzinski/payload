@@ -77,9 +77,9 @@
                 debug: false,
                 loadingDefault: true,
                 loadingHtml: '<small>Loading...</small>',
-                partialsNamespace: Handlebars.partials,
+                partialsNamespace: (typeof Handlebars === 'undefined') ? {} : Handlebars.partials,
                 subscribers: [], // [ {events: [], methods: [] } ]
-                templatesNamespace: Handlebars.templates,
+                templatesNamespace: (typeof Handlebars === 'undefined') ? {} : Handlebars.templates,
                 timeout: 0,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
