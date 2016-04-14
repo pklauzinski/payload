@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.3.13
+ * @version 0.4.0
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -45,14 +45,6 @@
              * @private
              */
             _$context,
-
-            /**
-             * Track the name of the last template that was loaded
-             *
-             * @type {string}
-             * @private
-             */
-            _lastTemplate = '',
 
             /**
              * Default options
@@ -304,50 +296,6 @@
             },
 
             /**
-             * Process view caching
-             *
-             * @param $origin
-             * @param api
-             * @param templateName
-             * @private
-             */
-            _cacheView = function($origin, api, templateName) {
-                var selector = api.selector,
-                    $selector = $(selector),
-                    key, current;
-
-                if (templateName === _lastTemplate && $origin.closest(selector).length) {
-                    return;
-                }
-
-                if (_cache.view[selector]) {
-                    for (key in _cache.view[selector]) {
-                        if (_cache.view[selector].hasOwnProperty(key) && _cache.view[selector][key].html === null) {
-                            _cache.view[selector][key].html = $selector.contents().detach();
-                            current = key;
-                            break;
-                        }
-                    }
-                } else if (api.cacheView) {
-                    _cache.view[selector] = {};
-                }
-
-                if (api.cacheView) {
-                    if (_cache.view[selector][templateName] && templateName !== current) {
-                        _cache.view[selector][templateName].html = null;
-                    } else if (!_cache.view[selector][templateName]) {
-                        _cache.view[selector][templateName] = {
-                            html: null,
-                            done: $.noop
-                        };
-                    }
-                    _lastTemplate = templateName;
-                } else {
-                    _lastTemplate = null;
-                }
-            },
-
-            /**
              * Publish the user defined events for a given API request
              *
              * @param params
@@ -418,6 +366,7 @@
          * Deliver Payload API functionality to the specified context
          *
          * @param opts
+         * @returns {Payload}
          */
         this.deliver = function(opts) {
             if (typeof(opts) === 'function') {
@@ -455,7 +404,6 @@
                     method: ($origin.attr(_dataPrefix + 'method') || $origin.attr('method') || 'get').toLowerCase(),
                     cacheRequest: $origin.attr(_dataPrefix + 'cache-request') || false,
                     cacheResponse: $origin.attr(_dataPrefix + 'cache-response') || false,
-                    cacheView: $origin.attr(_dataPrefix + 'cache-view') || false,
                     type: $origin.attr(_dataPrefix + 'type') || 'json',
                     selector: $origin.attr(_dataPrefix + 'selector') || false,
                     template: _options.templatesNamespace[$origin.attr(_dataPrefix + 'template')] || false,
@@ -482,11 +430,6 @@
             // ... which may be modified by the "pre" events below
             api_request = api.templateData.request;
 
-            // If caching is invoked and this is the last template loaded, do nothing
-            if (api.cacheView && _lastTemplate === templateName) {
-                return;
-            }
-
             api.loading = ($origin.attr(_dataPrefix + 'loading') ?
                 JSON.parse($origin.attr(_dataPrefix + 'loading')) : _options.loadingDefault);
 
@@ -502,28 +445,13 @@
                 // fire off a ".pre" name-spaced event to allow last-minute setup to occur
                 _publishUserEvents(params, 'pre');
 
-                if (api.cacheView &&
-                    _cache.view[api.selector] &&
-                    _cache.view[api.selector][templateName] &&
-                    _cache.view[api.selector][templateName].html !== null
-                ) {
-                    html = _cache.view[api.selector][templateName].html;
-                    _cacheView($origin, api, templateName);
-                    _options.apiBeforeRender(params);
-                    _pub('apiBeforeRender', [params]);
-                    $selector.html(html);
-                    _options.apiAfterRender(params);
-                    _pub('apiAfterRender', [params]);
-                    _cache.view[api.selector][templateName].done();
-                    api.url = false;
-                } else if (!api.url) {
+                if (!api.url) {
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
                     $selector.html(html);
                     _options.apiAfterRender(params);
                     _pub('apiAfterRender', [params]);
-                    _cacheView($origin, api, templateName);
                 }
 
                 _options.apiCallback(params);
@@ -533,8 +461,6 @@
                     _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
                     return;
                 }
-
-                _cacheView($origin, api, templateName);
 
                 if (api.cacheResponse &&
                     _cache.response[api_request.cacheKey] &&
@@ -643,8 +569,6 @@
                             data: templateData,
                             done: xhrDone
                         };
-                    } else if (api.cacheView) {
-                        _cache.view[api.selector][templateName].done = xhrDone;
                     }
                 }).fail(function(jqXHR, status, error) {
                     var params = {
@@ -781,8 +705,7 @@
         this.clearCache = function(type, key) {
             if (type === undefined) {
                 _cache = {
-                    response: {},
-                    view: {}
+                    response: {}
                 };
             } else if (type === 'response') {
                 if (key === undefined) {
@@ -790,19 +713,13 @@
                 } else {
                     delete _cache.response[key];
                 }
-            } else if (type === 'view') {
-                if (key === undefined) {
-                    _cache.view = {};
-                } else {
-                    delete _cache.view[key];
-                }
             } else {
                 return _error('clearCache() - Incorrect type defined');
             }
         };
 
         /**
-         * Register a Payload.js component by supplying the name (str) and options (obj)
+         * Register a component by supplying the name (str) and options (obj)
          *
          * @param name
          * @param options
@@ -827,7 +744,7 @@
         };
 
         /**
-         * Unregister a previously registered Payload.js component by supplying the name (str)
+         * Unregister a previously registered component by supplying the name (str)
          *
          * @param name
          * @returns {boolean}

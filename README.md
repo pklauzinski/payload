@@ -69,8 +69,8 @@ Payload.js selectors can also contain the `data-auto-load` attribute to cause th
 | Option               | Type                 | Default                       | Description                                                                                                                                                                                                                                                                                                         |
 |----------------------|----------------------|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `apiAccessToken`     | `string`             | `''`                          | Supply an access token for your application and it will be added as the `Authorization` request header for all XHR requests.                                                                                                                                                                                        |
-| `apiAfterRender`     | `function`           | `$.noop`                      | Invoked just after rendering a template or fetching cached HTML.                                                                                                                                                                                                                                                    |
-| `apiBeforeRender`    | `function`           | `$.noop`                      | Invoked just before rendering a template or fetching cached HTML.                                                                                                                                                                                                                                                   |
+| `apiAfterRender`     | `function`           | `$.noop`                      | Invoked just after rendering a template.                                                                                                                                                                                                                                                                            |
+| `apiBeforeRender`    | `function`           | `$.noop`                      | Invoked just before rendering a template.                                                                                                                                                                                                                                                                           |
 | `apiCallback`        | `function`           | `$.noop`                      | Called during API request handling before XHR requests (but after loading a template if no XHR request is required). See [API Callback Params](#api-callback-params) for more information about the arguments.                                                                                                      |
 | `apiOnClick`         | `function`           | `function() { return true; }` | Invoked on API link activation; if it returns a false value, Payload.js will skip performing an API request.                                                                                                                                                                                                        |
 | `apiOnSubmit`        | `function`           | `function() { return true; }` | Invoked on API form submission; if it returns a false value, Payload.js will skip performing an API request.                                                                                                                                                                                                        |
@@ -81,7 +81,6 @@ Payload.js selectors can also contain the `data-auto-load` attribute to cause th
 | `loadingDefault`     | `boolean`            | `true`                        | If `true`, sets the default behavior for all XHR requests to clear the `$target` element and show the `loadingHtml` within it. If `false`, the `$target` element's content will not be cleared until updated by the `$api` response. This can be overridden for any API request using the `data-loading` attribute. |
 | `loadingHtml`        | `string`             | `<small>Loading...</small>`   | The default HTML to insert into API `$target` if the `loading` flag for the request is `true`.                                                                                                                                                                                                                      |
 | `partialsNamespace`  | `object`             | `Handlebars.partials`         | The namespace containing precompiled Handlebars partials.                                                                                                                                                                                                                                                           |
-| `storeAppData`       | `boolean`            | `true`                        | If `true`, stores `Payload.appData` to localStorage on `beforeunload` event                                                                                                                                                                                                                                         |
 | `subscribers`        | `array`              | `[]`                          | List of events and callback functions to pass to `Payload.addSubscribers` method. These subscribers are initialized upon the `Payload.delivery` call.                                                                                                                                                               |
 | `templatesNamespace` | `object`             | `Handlebars.templates`        | The namespace containing precompiled Handlebars templates.                                                                                                                                                                                                                                                          |
 | `timeout`            | `number`             | `0`                           | Timeout value, in milliseconds, before XHR requests are aborted. This can be overridden for any API request using the `data-timeout` attribute. If set to `0`, no timeout will occur.                                                                                                                               |
@@ -99,7 +98,7 @@ Payload.js selectors can also contain the `data-auto-load` attribute to cause th
   - `subscribe(eventName, function)`  - Subscribe to a Payload.js event. When the specified event is published the function provided will be invoked and passed event-specific arguments.
   - `unsubscribe(eventName, function)`  - Stop subscribing to a Payload.js event.
   - `addSubscribers(subscribers)` - Subscribe multiple functions to an array of events: `subscribers={events: [], methods: []}`.
-  - `clearCache(type, key)`  - Based on the `type`, either the cached "response" or "view" data will be cleared for the given key. If no `type` is specified all caches are cleared. If a `type` is specified but no `key`, then all items within that `type` of cache are cleared.
+  - `clearCache(type, key)`  - Based on the `type`, the cached "response" data will be cleared for the given key. If no `type` is specified all caches are cleared. If a `type` is specified but no `key`, then all items within that `type` of cache are cleared.
 
 ## Helper Methods
 
@@ -118,7 +117,6 @@ When performing an API request Payload.js will also manage showing and hiding lo
 Note that DOM objects must either perform an API call by having `api.url` set (see the [API Object and HTML attributes](#api-object-and-html-attributes)) or specifying a template to load.
 
   1. Publish events with `pre` namespace to allow any preparation work to happen.
-  1. Fetch and set cached view if requested.
   1. Invoke `apiCallback` method set in Payload.js options (see [API Callback Params](#api-callback-params)).
   1. If no API URL was specified or a cached view was used, publish the API events and trigger `auto-load`.
   1. Show any configured loading indicators.
@@ -126,7 +124,7 @@ Note that DOM objects must either perform an API call by having `api.url` set (s
     1. Failures will invoke the `xhrFail` callback option.
     1. The `xhrAlways` callback option always gets called on XHR request completion.
   1. If a template selector is defined, render the template into the specified location. If `api.loading` was set, the loading element will quickly fade out first. The `xhrDone` callback option is invoked, API events are published, and `triggerAutoLoad($target)` is called.
-  1. Cache the XHR response if requested; otherwise cache the view (and thus the response too) if requested.
+  1. Cache the XHR response if requested.
 
 ### API Callback Params
 
@@ -153,7 +151,6 @@ The API object defined below is passed within the API params to the various call
   - `method` - $origin `data-method` or `method` attribute; HTTP method to use in API call (default: `'get'`)
   - `cacheRequest` - $origin `data-cache-request` attribute; if `true` flag XHR request to be cached
   - `cacheResponse` - $origin `data-cache-response` attribute; if `true` use cached response from Payload.js
-  - `cacheView` - $origin `data-cache-view` attribute; if `true` used cached view from Payload.js instead of rerendering the HTML, and skip performing API calls
   - `type` - jquery XHR request type (default: `'json'`)
   - `selector` - $origin `data-selector` attribute; jQuery selector for the API $target that a template will be loaded into
   - `template` - $origin "data-template" attribute; name of the Handlebars template to load into the location specified by `data-selector` (overrides `data-partial` if also set)
@@ -175,4 +172,4 @@ Every Handlebars template always has the following data available:
 
   - `options` - Current set of options (see [Payload.js Options](#payloadjs-options))
   - `appData` - Object for storing custom application data; provided as `app` within template data
-  - `cache` - Object containing `response` and `view` caches.
+  - `cache` - Object containing `response` cache.
