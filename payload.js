@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.4.0
+ * @version 0.4.1
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -393,11 +393,13 @@
          * Make an API request via the given jQuery $origin object
          * This method is called internally when a Payload API object is interacted with in the DOM
          * It may also be called directly by supplying any jQuery object with the appropriate attributes
+         * Optionally pass in data as second parameter to be sent with request
          *
          * @param $origin
+         * @param data
          * @todo - break this up into more granular methods
          */
-        this.apiRequest = function($origin) {
+        this.apiRequest = function($origin, data) {
             var api = {
                     href: $origin.attr('href'),
                     url: $origin.attr(_dataPrefix + 'url') || $origin.attr('action'),
@@ -409,7 +411,7 @@
                     template: _options.templatesNamespace[$origin.attr(_dataPrefix + 'template')] || false,
                     partial: _options.partialsNamespace[$origin.attr(_dataPrefix + 'partial')] || false,
                     events: $origin.attr(_dataPrefix + 'publish') ? $origin.attr(_dataPrefix + 'publish').split(' ') : [],
-                    requestData: $.extend({}, _this.serializeObject($origin), JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')),
+                    requestData: $.extend({}, _this.serializeObject($origin), data || {}, JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')),
                     timeout: $origin.attr(_dataPrefix + 'timeout') || _options.timeout,
                     templateData: {
                         app: _this.appData,
@@ -501,7 +503,7 @@
                     url: api.url,
                     type: api.method,
                     dataType: api.type,
-                    data: (api.method === 'get') ? api.requestData : JSON.stringify(api.requestData),
+                    data: (api.method === 'get') ? $.param(api.requestData) : JSON.stringify(api.requestData),
                     contentType: 'application/json',
                     cache: api.cacheRequest,
                     timeout: api.timeout,

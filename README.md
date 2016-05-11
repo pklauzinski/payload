@@ -4,7 +4,6 @@
 [![npm version](https://img.shields.io/npm/v/payloadjs.svg)](https://www.npmjs.com/package/payloadjs)
 [![Bower version](https://img.shields.io/bower/v/payloadjs.svg)](https://github.com/payloadjs/payload)
 [![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Join the chat at https://gitter.im/payloadjs/payload](https://badges.gitter.im/payloadjs/payload.svg)](https://gitter.im/payloadjs/payload?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Payload.js is a javascript single page application (SPA) driver that creates a global `Payload` object to automate API requests and render [Handlebars](http://handlebarsjs.com/) templates or raw HTML data within the DOM. Payload.js's behaviors are initialized by calling `Payload.deliver()` with a default object of options, and are further controlled by setting various HTML `data-` attributes on DOM objects.
 
