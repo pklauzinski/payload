@@ -16,7 +16,8 @@ When DOM objects imbued with Payload.js's selectors are activated, a call to `Pa
     - [Install from Bower](#install-from-bower)
 - [Dependencies](#dependencies)
 - [Selectors](#selectors)
-- [Payload.js Options](#payloadjs-options)
+- [HTML5 API](#html5-api)
+- [Payload.js Initialization Options](#payloadjs-initialization-options)
 - [Primary Methods](#primary-methods)
 - [Helper Methods](#helper-methods)
 - [API Request Handling](#api-request-handling)
@@ -63,7 +64,18 @@ Payload.js automatically binds to HTML elements based on the following selectors
 
 Payload.js selectors can also contain the `data-auto-load` attribute to cause them to be automatically invoked on page/template load. Selectors are used to invoke API calls and/or render templates when they receive an appropriate user or trigger event.
 
-## Payload.js Options
+## HTML5 API
+
+The most useful feature of Payload.js is its intuitive HTML5 API. It can be used out of the box with little to no configuration and interacted with entirely from HTML. This makes Payload.js accessible to the non javascript savvy web developer.
+
+```html
+<a href="/history-url"
+   data-url="/api/endpoint"
+   data-template="template-name"
+   data-selector=".dom-selector">My link text</a>
+```
+
+## Payload.js Initialization Options
 
 | Option               | Type                 | Default                       | Description                                                                                                                                                                                                                                                                                                         |
 |----------------------|----------------------|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

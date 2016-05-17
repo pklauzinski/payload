@@ -7,7 +7,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  *
  * @author Philip Klauzinski
- * @version 0.4.1
+ * @version 0.4.2
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -411,7 +411,11 @@
                     template: _options.templatesNamespace[$origin.attr(_dataPrefix + 'template')] || false,
                     partial: _options.partialsNamespace[$origin.attr(_dataPrefix + 'partial')] || false,
                     events: $origin.attr(_dataPrefix + 'publish') ? $origin.attr(_dataPrefix + 'publish').split(' ') : [],
-                    requestData: $.extend({}, _this.serializeObject($origin), data || {}, JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')),
+                    requestData: $.extend(
+                        data !== undefined && data.constructor === Array ? [] : {},
+                        _this.serializeObject($origin), data || {},
+                        JSON.parse($origin.attr(_dataPrefix + 'form') || '{}')
+                    ),
                     timeout: $origin.attr(_dataPrefix + 'timeout') || _options.timeout,
                     templateData: {
                         app: _this.appData,
