@@ -1,6 +1,6 @@
 {
   "name": "payloadjs",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "description": "Payload.js is a javascript single page application (SPA) driver designed to interact intuitively with REST APIs from within web and mobile apps.",
   "main": "payload.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/payloadjs/payload.git"
+    "url": "https://github.com/pklauzinski/payload.git"
   },
   "keywords": [
     "payload",
@@ -22,11 +22,11 @@
   ],
   "author": {
     "name": "Philip Klauzinski",
-    "url": "http://gui.ninja"
+    "url": "http://webtopian.com"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/payloadjs/payload/issues"
+    "url": "https://github.com/pklauzinski/payload/issues"
   },
   "homepage": "http://payloadjs.com",
   "dependencies": {
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "grunt": "^0.4.5",
-    "grunt-bump": "^0.7.0",
+    "grunt-bump": "^0.7.3",
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-jscs": "^2.8.0"
   }

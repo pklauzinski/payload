@@ -1,13 +1,17 @@
 {
   "name": "payloadjs",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "homepage": "http://payloadjs.com",
   "authors": [
     {
       "name": "Philip Klauzinski",
-      "homepage": "http://gui.ninja"
+      "homepage": "http://webtopian.com"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pklauzinski/payload"
+  },
   "description": "Payload.js is a javascript single page application (SPA) driver for REST API payload management. It is designed to interact intuitively with REST API endpoints from within web and mobile apps.",
   "main": "payload.js",
   "moduleType": [

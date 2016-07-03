@@ -1,13 +1,11 @@
 /*!
  * Payload.js - Javascript Single Page Application Driver
- * http://payloadjs.com
+ * @see {@link http://payloadjs.com}
  *
- * Copyright (c) 2015-2016, Philip Klauzinski (http://gui.ninja)
- * Released under the MIT license
- * http://www.opensource.org/licenses/mit-license.php
- *
- * @author Philip Klauzinski
- * @version 0.4.2
+ * @copyright 2015-2016, Philip Klauzinski
+ * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
+ * @author Philip Klauzinski (http://webtopian.com)
+ * @version 0.5.0
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -64,14 +62,14 @@
                     return true;
                 },
                 apiResponseParent: '',
-                context: document.body || null,
+                context: 'body',
                 dataNamespace: '',
                 debug: false,
                 loadingDefault: true,
                 loadingHtml: '<small>Loading...</small>',
-                partialsNamespace: (typeof Handlebars === 'undefined') ? {} : Handlebars.partials,
+                partials: (typeof Handlebars === 'undefined') ? {} : Handlebars.partials,
                 subscribers: [], // [ {events: [], methods: [] } ]
-                templatesNamespace: (typeof Handlebars === 'undefined') ? {} : Handlebars.templates,
+                templates: (typeof Handlebars === 'undefined') ? {} : Handlebars.templates,
                 timeout: 0,
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
@@ -408,8 +406,8 @@
                     cacheResponse: $origin.attr(_dataPrefix + 'cache-response') || false,
                     type: $origin.attr(_dataPrefix + 'type') || 'json',
                     selector: $origin.attr(_dataPrefix + 'selector') || false,
-                    template: _options.templatesNamespace[$origin.attr(_dataPrefix + 'template')] || false,
-                    partial: _options.partialsNamespace[$origin.attr(_dataPrefix + 'partial')] || false,
+                    template: _options.templates[$origin.attr(_dataPrefix + 'template')] || false,
+                    partial: _options.partials[$origin.attr(_dataPrefix + 'partial')] || false,
                     events: $origin.attr(_dataPrefix + 'publish') ? $origin.attr(_dataPrefix + 'publish').split(' ') : [],
                     requestData: $.extend(
                         data !== undefined && data.constructor === Array ? [] : {},
@@ -423,7 +421,7 @@
                     }
                 },
                 templateName = $origin.attr(_dataPrefix + 'template') || $origin.attr(_dataPrefix + 'partial'),
-                api_request, $selector, $loading, $load, html, templateData, params;
+                api_request, $target, $loading, $load, html, templateData, params;
 
             // Add the request payload to the template data under "request" namespace
             api.templateData.request = $.extend({
@@ -441,11 +439,11 @@
 
             // Begin template sequence
             if (api.url || api.selector && (api.template || api.partial)) {
-                $selector = $(api.selector);
+                $target = $(api.selector);
                 $loading = $origin.find('[' + _dataPrefix + 'role="loading"]');
                 params = {
                     $origin: $origin,
-                    $target: $selector,
+                    $target: $target,
                     api: api
                 };
                 // fire off a ".pre" name-spaced event to allow last-minute setup to occur
@@ -455,7 +453,7 @@
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
-                    $selector.html(html);
+                    $target.html(html);
                     _options.apiAfterRender(params);
                     _pub('apiAfterRender', [params]);
                 }
@@ -464,7 +462,7 @@
 
                 if (!api.url) {
                     _publishUserEvents(params);
-                    _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
+                    _this.triggerAutoLoad($target.find(_selectors.AUTO_LOAD));
                     return;
                 }
 
@@ -478,22 +476,22 @@
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
-                    $selector.html(html);
+                    $target.html(html);
                     _options.apiAfterRender(params);
                     _pub('apiAfterRender', [params]);
                     _cache.response[api_request.cacheKey].done();
                     _publishUserEvents(params);
-                    _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
+                    _this.triggerAutoLoad($target.find(_selectors.AUTO_LOAD));
                     return;
                 }
 
                 // Begin AJAX sequence
 
                 // Set selector as busy, and show loading indicator if available
-                $selector.attr('aria-busy', true);
+                $target.attr('aria-busy', true);
                 if (api.loading) {
                     $load = $(_options.loadingHtml).attr(_dataPrefix + 'role', 'loading');
-                    $selector.empty().prepend($load);
+                    $target.empty().prepend($load);
                 } else if ($loading.length) {
                     $loading.show();
                 }
@@ -516,7 +514,7 @@
                             jqXHR: jqXHR,
                             settings: settings,
                             $origin: $origin,
-                            $target: $selector,
+                            $target: $target,
                             api: api
                         };
                         if (_options.apiAccessToken) {
@@ -533,35 +531,35 @@
                             status: status,
                             jqXHR: jqXHR,
                             $origin: $origin,
-                            $target: $selector,
+                            $target: $target,
                             html: undefined, // filled in below after HTML is rendered
                             api: $.extend(api, {templateData: templateData})
                         },
                         xhrDone = function() {
                             _options.xhrDone(params);
                             _pub('xhrDone', [params]);
-                            _this.triggerAutoLoad($selector.find(_selectors.AUTO_LOAD));
+                            _this.triggerAutoLoad($target.find(_selectors.AUTO_LOAD));
                         };
 
-                    if ($selector.length && api.loading) {
-                        $selector.find(_selectors.LOADING).first().fadeOut(100, function() {
+                    if ($target.length && api.loading) {
+                        $target.find(_selectors.LOADING).first().fadeOut(100, function() {
                             _options.apiBeforeRender(params);
                             _pub('apiBeforeRender', [params]);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             params.html = html;
-                            $selector.html(html);
+                            $target.html(html);
                             _options.apiAfterRender(params);
                             _pub('apiAfterRender', [params]);
                             xhrDone();
                             _publishUserEvents(params);
                         });
                     } else {
-                        if ($selector.length) {
+                        if ($target.length) {
                             _options.apiBeforeRender(params);
                             _pub('apiBeforeRender', [params]);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
                             params.html = html;
-                            $selector.html(html);
+                            $target.html(html);
                             _options.apiAfterRender(params);
                             _pub('apiAfterRender', [params]);
                         }
@@ -582,7 +580,7 @@
                         status: status,
                         error: error,
                         $origin: $origin,
-                        $target: $selector,
+                        $target: $target,
                         api: api
                     };
                     _options.xhrFail(params);
@@ -595,14 +593,14 @@
                             status: status,
                             error: success ? null : jqXHRorError,
                             $origin: $origin,
-                            $target: $selector,
+                            $target: $target,
                             api: api
                         };
 
                     _options.xhrAlways(params);
                     _pub('xhrAlways', [params]);
                     // Remove selector busy status
-                    $selector.removeAttr('aria-busy');
+                    $target.removeAttr('aria-busy');
                 });
             }
         };
