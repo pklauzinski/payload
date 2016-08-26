@@ -102,7 +102,7 @@ The most useful feature of Payload.js is its intuitive HTML5 API. It can be used
 
 ## Primary Methods
 
-  - `deliver(options)` - Used to initialize the initial options to Payload.js and start monitoring the Payload.js context for events; see [Payload.js Options](#payloadjs-options).
+  - `deliver(options)` - Used to initialize the initial options to Payload.js and start monitoring the Payload.js context for events; see [Payload.js Options](#payloadjs-initialization-options).
   - `apiRequest($origin)` - Automatically called when a selector is activated. May also be called explicitly by passing in a jQuery object with the proper data attributes. See [API Request Handling](#api-request-handling) for more information about this method.
   - `triggerAutoLoad($element)`  - Perform an API call on any DOM nodes containing the attribute `data-auto-load` set to `true`. If `$element` is given, trigger `auto-load` on the parameter instead of on the Payload.js `$context`.
   - `publish(eventName, arguments)`  - Publish a Payload.js. Any arguments given will pass through to the event handlers subscribed to the event named.
@@ -119,7 +119,7 @@ The most useful feature of Payload.js is its intuitive HTML5 API. It can be used
 
 ## API Request Handling
 
-Once a selector has been activated, Payload.js perform any API calls requested and renders the template specified. Your app can interact with Payload.js via various callback methods and by "subscribing" to API events. Upon completion of rendering a template, Payload.js will call `Payload.triggerAutoLoad($target)`.
+Once a selector has been activated, Payload.js performs any API calls requested and renders the template specified. Your app can interact with Payload.js via various callback methods and by "subscribing" to API events. Upon completion of rendering a template, Payload.js will call `Payload.triggerAutoLoad($target)`.
 
 When performing an API request Payload.js will also manage showing and hiding loading indicators. If the "data-loading" attribute is set to "true" (or the "loadingDefault" option is true) the "$target" element will be cleared and have the "loadingHtml" inserted. Otherwise Payload.js will look for an element with the attribute `data-role` set to `loading` and call `jQuery.show()` on it.
 
@@ -181,6 +181,6 @@ Every Handlebars template always has the following data available:
 
 ## Payload.js Object Properties
 
-  - `options` - Current set of options (see [Payload.js Options](#payloadjs-options))
+  - `options` - Current set of options (see [Payload.js Options](#payloadjs-initialization-options))
   - `appData` - Object for storing custom application data; provided as `app` within template data
   - `cache` - Object containing `response` cache.
