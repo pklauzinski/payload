@@ -5,7 +5,7 @@
  * @copyright 2015-2016, Philip Klauzinski
  * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @author Philip Klauzinski (http://webtopian.com)
- * @version 0.4.3
+ * @version 0.4.5
  * @requires jQuery v1.7+
  * @preserve
  */
