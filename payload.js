@@ -191,9 +191,9 @@
                  * @param obj
                  */
                 set: function(id, obj) {
-                    if (localStorage && localStorage.setItem) {
+                    if (window.localStorage && window.localStorage.setItem) {
                         try {
-                            localStorage.setItem(id, JSON.stringify(obj));
+                            window.localStorage.setItem(id, JSON.stringify(obj));
                         } catch(err) {
                             _this.debug('warn', err);
                         }
@@ -210,9 +210,9 @@
                  */
                 get: function(id) {
                     var storage = {};
-                    if (localStorage && localStorage.getItem) {
+                    if (window.localStorage && window.localStorage.getItem) {
                         try {
-                            storage = JSON.parse(localStorage.getItem(id));
+                            storage = JSON.parse(window.localStorage.getItem(id));
                         } catch(err) {
                             _this.debug(err);
                         }
@@ -229,8 +229,8 @@
                  * @param id
                  */
                 remove: function(id) {
-                    if (localStorage && localStorage.removeItem) {
-                        localStorage.removeItem(id);
+                    if (window.localStorage && window.localStorage.removeItem) {
+                        window.localStorage.removeItem(id);
                         return true;
                     } else {
                         _this.debug('warn', 'localStorage not available');
