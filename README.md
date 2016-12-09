@@ -62,17 +62,18 @@ Payload.js automatically binds to HTML elements based on the following selectors
     - `form[data-selector]`
     - `form[data-url]`
 
-Payload.js selectors can also contain the `data-auto-load` attribute to cause them to be automatically invoked on page/template load. Selectors are used to invoke API calls and/or render templates when they receive an appropriate user or trigger event.
+Payload.js selectors can also contain the `data-auto-load` attribute to cause them to be automatically invoked on page/template load. Selectors are used to invoke API calls and/or render templates when they receive an appropriate trigger event or they are called directly with `Payload.apiRequest()`.
 
 ## HTML5 API
 
 The most useful feature of Payload.js is its intuitive HTML5 API. It can be used out of the box with little to no configuration and interacted with entirely from HTML. This makes Payload.js accessible to the non javascript savvy web developer.
 
 ```html
-<a href="/history-url"
-   data-url="/api/endpoint"
-   data-template="template-name"
-   data-selector=".dom-selector">My link text</a>
+<button data-url="/api/endpoint"
+        data-template="template-name"
+        data-selector=".target-selector">
+    Button text
+</button>
 ```
 
 ## Payload.js Initialization Options
@@ -104,7 +105,7 @@ The most useful feature of Payload.js is its intuitive HTML5 API. It can be used
 
   - `deliver(options)` - Used to initialize the initial options to Payload.js and start monitoring the Payload.js context for events; see [Payload.js Options](#payloadjs-initialization-options).
   - `apiRequest($origin)` - Automatically called when a selector is activated. May also be called explicitly by passing in a jQuery object with the proper data attributes. See [API Request Handling](#api-request-handling) for more information about this method.
-  - `triggerAutoLoad($element)`  - Perform an API call on any DOM nodes containing the attribute `data-auto-load` set to `true`. If `$element` is given, trigger `auto-load` on the parameter instead of on the Payload.js `$context`.
+  - `triggerAutoLoad($element)`  - Perform an API request on any DOM nodes containing the attribute `data-auto-load`. If `$element` is given, perform an API request on the given jQuery object instead of on the Payload.js `$context`.
   - `publish(eventName, arguments)`  - Publish a Payload.js. Any arguments given will pass through to the event handlers subscribed to the event named.
   - `subscribe(eventName, function)`  - Subscribe to a Payload.js event. When the specified event is published the function provided will be invoked and passed event-specific arguments.
   - `unsubscribe(eventName, function)`  - Stop subscribing to a Payload.js event.

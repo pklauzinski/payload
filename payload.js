@@ -5,7 +5,7 @@
  * @copyright 2015-2016, Philip Klauzinski
  * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @author Philip Klauzinski (http://webtopian.com)
- * @version 0.4.5
+ * @version 0.5.0
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -82,7 +82,7 @@
             _selectors = {
                 API_FORM: 'form[' + _dataPrefix + 'selector],form[' + _dataPrefix + 'url]',
                 API_LINK: 'a[' + _dataPrefix + 'selector],a[' + _dataPrefix + 'url],button[' + _dataPrefix + 'selector],button[' + _dataPrefix + 'url]',
-                AUTO_LOAD: '[' + _dataPrefix + 'auto-load="true"]',
+                AUTO_LOAD: '[' + _dataPrefix + 'auto-load]',
                 CLICK: '[' + _dataPrefix + 'click]',
                 LOADING: '[' + _dataPrefix + 'role="loading"]'
             },
@@ -127,11 +127,13 @@
                 if (_options.debug && typeof console === 'object' && (typeof m === 'object' || typeof console[m] === 'function')) {
                     if (typeof m === 'object') {
                         for (sMethod in m) {
-                            if (typeof console[sMethod] === 'function') {
-                                args = (typeof m[sMethod] === 'string' || (typeof m[sMethod] === 'object' && m[sMethod].length === undefined)) ? [m[sMethod]] : m[sMethod];
-                                console[sMethod].apply(console, args);
-                            } else {
-                                console.log(m[sMethod]);
+                            if (m.hasOwnProperty(sMethod)) {
+                                if (typeof console[sMethod] === 'function') {
+                                    args = (typeof m[sMethod] === 'string' || (typeof m[sMethod] === 'object' && m[sMethod].length === undefined)) ? [m[sMethod]] : m[sMethod];
+                                    console[sMethod].apply(console, args);
+                                } else {
+                                    console.log(m[sMethod]);
+                                }
                             }
                         }
                     } else {
@@ -301,10 +303,8 @@
              * @private
              */
             _publishUserEvents = function(params, namespace) {
-                var i = 0,
-                    event_name;
-
-                for (; i < params.api.events.length; i++) {
+                var i, event_name;
+                for (i = 0; i < params.api.events.length; i++) {
                     event_name = params.api.events[i];
                     if (namespace) {
                         event_name += '.' + namespace;
@@ -395,6 +395,7 @@
          *
          * @param $origin
          * @param data
+         * @returns {Payload}
          * @todo - break this up into more granular methods
          */
         this.apiRequest = function($origin, data) {
@@ -418,7 +419,8 @@
                     templateData: {
                         app: _this.appData,
                         view: $origin.data()
-                    }
+                    },
+                    token: $origin.attr(_dataPrefix + 'token') || _options.apiAccessToken || false
                 },
                 templateName = $origin.attr(_dataPrefix + 'template') || $origin.attr(_dataPrefix + 'partial'),
                 api_request, $target, $loading, $load, html, templateData, params;
@@ -446,10 +448,10 @@
                     $target: $target,
                     api: api
                 };
-                // fire off a ".pre" name-spaced event to allow last-minute setup to occur
-                _publishUserEvents(params, 'pre');
 
                 if (!api.url) {
+                    // User events with "pre" namespace triggered before render
+                    _publishUserEvents(params, 'pre');
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
@@ -463,7 +465,7 @@
                 if (!api.url) {
                     _publishUserEvents(params);
                     _this.triggerAutoLoad($target.find(_selectors.AUTO_LOAD));
-                    return;
+                    return _this;
                 }
 
                 if (api.cacheResponse &&
@@ -473,6 +475,8 @@
                 ) {
                     templateData = $.extend({}, _cache.response[api_request.cacheKey].data, api.templateData);
                     params.response = _cache.response[api_request.cacheKey].response;
+                    // User events with "pre" namespace triggered before render
+                    _publishUserEvents(params, 'pre');
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
@@ -482,7 +486,7 @@
                     _cache.response[api_request.cacheKey].done();
                     _publishUserEvents(params);
                     _this.triggerAutoLoad($target.find(_selectors.AUTO_LOAD));
-                    return;
+                    return _this;
                 }
 
                 // Begin AJAX sequence
@@ -496,16 +500,11 @@
                     $loading.show();
                 }
 
-                // Is there an access token?
-                if (_options.apiAccessToken) {
-                    api.requestData.access_token = _options.apiAccessToken;
-                }
-
                 $.ajax({
                     url: api.url,
                     type: api.method,
                     dataType: api.type,
-                    data: (api.method === 'get') ? $.param(api.requestData) : JSON.stringify(api.requestData),
+                    data: (api.method === 'get') ? $.param(data || {}) : JSON.stringify(api.requestData),
                     contentType: 'application/json',
                     cache: api.cacheRequest,
                     timeout: api.timeout,
@@ -517,8 +516,8 @@
                             $target: $target,
                             api: api
                         };
-                        if (_options.apiAccessToken) {
-                            jqXHR.setRequestHeader('Authorization', _options.apiAccessToken);
+                        if (api.token) {
+                            jqXHR.setRequestHeader('Authorization', api.token);
                         }
                         _options.xhrBeforeSend(params);
                         _pub('xhrBeforeSend', [params]);
@@ -539,10 +538,14 @@
                             _options.xhrDone(params);
                             _pub('xhrDone', [params]);
                             _this.triggerAutoLoad($target.find(_selectors.AUTO_LOAD));
-                        };
+                        },
+                        $loading = $target.find(_selectors.LOADING);
 
-                    if ($target.length && api.loading) {
-                        $target.find(_selectors.LOADING).first().fadeOut(100, function() {
+                    // User events with "pre" namespace triggered before render
+                    _publishUserEvents(params, 'pre');
+
+                    if ($target.length && api.loading && $loading.length) {
+                        $loading.fadeOut(100, function() {
                             _options.apiBeforeRender(params);
                             _pub('apiBeforeRender', [params]);
                             html = templateName ? (api.template ? api.template(templateData) : api.partial(templateData)) : false;
@@ -603,6 +606,7 @@
                     $target.removeAttr('aria-busy');
                 });
             }
+            return _this;
         };
 
         /**
@@ -610,47 +614,62 @@
          * When no argument is passed, trigger 'auto-load' if found within the app context
          *
          * @param $e
+         * @returns {Payload}
          */
         this.triggerAutoLoad = function($e) {
             if ($e !== undefined) {
                 if ($e instanceof $ && $e.length) {
-                    $e.trigger('auto-load');
+                    $e.each(function() {
+                        _this.apiRequest($(this));
+                    });
                 }
             } else {
-                _$context.find(_selectors.AUTO_LOAD).trigger('auto-load');
+                _$context.find(_selectors.AUTO_LOAD).each(function() {
+                    _this.apiRequest($(this));
+                });
             }
+            return _this;
         };
 
         /**
          * Publish a custom event
          * based on https://github.com/cowboy/jquery-tiny-pubsub
+         *
+         * @returns {Payload}
          */
         this.publish = function() {
             _debug('info', '"' + arguments[0] + '"', 'event published.');
             _$userEvents.trigger.apply(_$userEvents, arguments);
+            return _this;
         };
 
         /**
          * Subscribe to a custom event
          * based on https://github.com/cowboy/jquery-tiny-pubsub
+         *
+         * @returns {Payload}
          */
         this.subscribe = function() {
             _$userEvents.on.apply(_$userEvents, arguments);
+            return _this;
         };
 
         /**
          * Unsubscribe from a custom event
          * based on https://github.com/cowboy/jquery-tiny-pubsub
+         *
+         * @returns {Payload}
          */
         this.unsubscribe = function() {
             _$userEvents.off.apply(_$userEvents, arguments);
+            return _this;
         };
 
         /**
          * Subscribe custom events to given methods in array of {events: [], methods: []} objects
          *
          * @param subscribers
-         * @public
+         * @returns {Payload}
          */
         this.addSubscribers = function(subscribers) {
             $.each(subscribers, function(i, val) {
@@ -674,6 +693,7 @@
                     });
                 });
             });
+            return _this;
         };
 
         /**
@@ -705,6 +725,7 @@
          *
          * @param type
          * @param key
+         * @returns {Payload}
          */
         this.clearCache = function(type, key) {
             if (type === undefined) {
@@ -720,6 +741,7 @@
             } else {
                 return _error('clearCache() - Incorrect type defined');
             }
+            return _this;
         };
 
         /**
@@ -727,10 +749,10 @@
          *
          * @param name
          * @param options
-         * @returns {*}
+         * @returns {Payload}
          */
         this.registerComponent = function(name, options) {
-            var i = 0;
+            var i;
             if (_components[name] !== undefined) {
                 return _error('registerComponent() - "' + name + '" component already exists');
             }
@@ -738,27 +760,28 @@
                 return _error('registerComponent() - "' + name + '" component options not defined');
             }
             _components[name] = options;
-            for (; i < _payloadEvents.length; i++) {
+            for (i = 0; i < _payloadEvents.length; i++) {
                 if (options[_payloadEvents[i]]) {
                     _sub(_payloadEvents[i] + '.' + name, options[_payloadEvents[i]]);
                 }
             }
             _pub('init.' + name);
-            return _components[name];
+            return _this;
         };
 
         /**
          * Unregister a previously registered component by supplying the name (str)
          *
          * @param name
-         * @returns {boolean}
+         * @returns {Payload}
          */
         this.unregisterComponent = function(name) {
             if (_components[name] === undefined) {
                 return _error('unregisterComponent() - "' + name + '" component does not exist');
             }
             _unsub('.' + name);
-            return delete _components[name];
+            delete _components[name];
+            return _this;
         };
 
     };
