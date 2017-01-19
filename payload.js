@@ -2,10 +2,10 @@
  * Payload.js - Javascript Single Page Application Driver
  * @see {@link http://payloadjs.com}
  *
- * @copyright 2015-2016, Philip Klauzinski
+ * @copyright 2015-2017, Philip Klauzinski
  * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @author Philip Klauzinski (http://webtopian.com)
- * @version 0.5.0
+ * @version 0.5.1
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -187,57 +187,85 @@
              */
             _storage = {
                 /**
-                 * Safely store obj to localStorage under specified id
+                 * Safely store obj to localStorage or sessionStorage under specified id
+                 * Defaults to localStorage. Pass optional _type param as 'session' to access sessionStorage.
                  *
                  * @param id
                  * @param obj
+                 * @param _type
                  */
-                set: function(id, obj) {
-                    if (window.localStorage && window.localStorage.setItem) {
+                set: function(id, obj, _type) {
+                    var type = _type === 'session' ? 'sessionStorage' : 'localStorage';
+                    if (window[type] && window[type].setItem) {
                         try {
-                            window.localStorage.setItem(id, JSON.stringify(obj));
+                            window[type].setItem(id, JSON.stringify(obj));
                         } catch(err) {
                             _this.debug('warn', err);
                         }
                     } else {
-                        _this.debug('warn', 'localStorage not available');
+                        _this.debug('warn', type + ' not available');
                     }
                     return obj;
                 },
 
                 /**
-                 * Safely get object in localStorage under specified id
+                 * Safely get object in localStorage or sessionStorage under specified id
+                 * Defaults to localStorage. Pass optional _type param as 'session' to access sessionStorage.
                  *
                  * @param id
+                 * @param _type
                  */
-                get: function(id) {
-                    var storage = {};
-                    if (window.localStorage && window.localStorage.getItem) {
+                get: function(id, _type) {
+                    var type = _type === 'session' ? 'sessionStorage' : 'localStorage',
+                        storage = {};
+
+                    if (window[type] && window[type].getItem) {
                         try {
-                            storage = JSON.parse(window.localStorage.getItem(id));
+                            storage = JSON.parse(window[type].getItem(id));
                         } catch(err) {
                             _this.debug(err);
                         }
                     } else {
-                        _this.debug('warn', 'localStorage not available');
+                        _this.debug('warn', type + ' not available');
                     }
                     // storage could be null, so return {} if so
                     return storage || {};
                 },
 
                 /**
-                 * Safely remove localStorage item under specified id
+                 * Safely remove localStorage or sessionStorage item under specified id
+                 * Defaults to localStorage. Pass optional _type param as 'session' to access sessionStorage.
                  *
                  * @param id
+                 * @param _type
                  */
-                remove: function(id) {
-                    if (window.localStorage && window.localStorage.removeItem) {
-                        window.localStorage.removeItem(id);
+                remove: function(id, _type) {
+                    var type = _type === 'session' ? 'sessionStorage' : 'localStorage';
+                    if (window[type] && window[type].removeItem) {
+                        window[type].removeItem(id);
                         return true;
                     } else {
-                        _this.debug('warn', 'localStorage not available');
+                        _this.debug('warn', type + ' not available');
                         return false;
                     }
+                }
+            },
+
+            /**
+             * Shortcut methods for accessing _storage API as sessionStorage only
+             *
+             * @type {{}}
+             * @private
+             */
+            _session = {
+                set: function(id, obj) {
+                    return _storage.set(id, obj, 'session');
+                },
+                get: function(id) {
+                    return _storage.get(id, 'session');
+                },
+                remove: function(id) {
+                    return _storage.remove(id, 'session');
                 }
             },
 
@@ -359,6 +387,13 @@
          * @type {{}}
          */
         this.storage = _storage;
+
+        /**
+         * Expose internal storage API with only sessionStorage
+         *
+         * @type {{}}
+         */
+        this.session = _session;
 
         /**
          * Deliver Payload API functionality to the specified context
