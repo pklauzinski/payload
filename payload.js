@@ -5,7 +5,7 @@
  * @copyright 2015-2017, Philip Klauzinski
  * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @author Philip Klauzinski (http://webtopian.com)
- * @version 0.5.2
+ * @version 0.5.3
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -191,7 +191,7 @@
                     var storage = window[type],
                         name = '__storage_test__';
 
-                    storage.set(name, 1);
+                    storage.setItem(name, 1);
                     storage.removeItem(name);
                     return true;
                 } catch (e) {
