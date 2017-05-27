@@ -1,6 +1,6 @@
 {
   "name": "payloadjs",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Payload.js is a javascript single page application (SPA) driver designed to interact intuitively with REST APIs from within web and mobile apps.",
   "main": "payload.js",
   "scripts": {
@@ -35,7 +35,6 @@
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-bump": "^0.8.0",
-    "grunt-contrib-jshint": "^1.0.0",
-    "grunt-jscs": "^3.0.1"
+    "gruntify-eslint": "3.1.0"
   }
 }

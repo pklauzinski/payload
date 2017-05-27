@@ -7,25 +7,13 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
 
         /**
-         * https://github.com/gruntjs/grunt-contrib-jshint
+         * https://github.com/gyandeeps/gruntify-eslint
          */
-        jshint: {
+        eslint: {
             options: {
-                jshintrc: true
+                configFile: '.eslintrc'
             },
-            files: {
-                src: ['Gruntfile.js', 'payload.js']
-            }
-        },
-
-        /**
-         * https://github.com/jscs-dev/grunt-jscs
-         */
-        jscs: {
-            src: ['Gruntfile.js', 'payload.js'],
-            options: {
-                config: '.jscsrc'
-            }
+            src: ['Gruntfile.js', 'payload.js']
         },
 
         /**
@@ -53,10 +41,9 @@ module.exports = function(grunt) {
 
     });
 
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-jscs');
+    grunt.loadNpmTasks('gruntify-eslint');
     grunt.loadNpmTasks('grunt-bump');
 
-    grunt.registerTask('default', ['jshint', 'jscs']);
-    grunt.registerTask('test', ['jshint', 'jscs']);
+    grunt.registerTask('default', ['eslint']);
+    grunt.registerTask('test', ['eslint']);
 };

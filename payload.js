@@ -5,7 +5,7 @@
  * @copyright 2015-2017, Philip Klauzinski
  * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @author Philip Klauzinski (http://webtopian.com)
- * @version 0.5.1
+ * @version 0.5.2
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -180,6 +180,26 @@
             },
 
             /**
+             * Test if browser storage API is both supported and available
+             *
+             * @param type
+             * @returns {boolean}
+             * @private
+             */
+            _storageAvailable = function(type) {
+                try {
+                    var storage = window[type],
+                        name = '__storage_test__';
+
+                    storage.set(name, 1);
+                    storage.removeItem(name);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+
+            /**
              * Internal JSON API for localStorage
              *
              * @type {{}}
@@ -196,12 +216,8 @@
                  */
                 set: function(id, obj, _type) {
                     var type = _type === 'session' ? 'sessionStorage' : 'localStorage';
-                    if (window[type] && window[type].setItem) {
-                        try {
-                            window[type].setItem(id, JSON.stringify(obj));
-                        } catch(err) {
-                            _this.debug('warn', err);
-                        }
+                    if (_storageAvailable(type)) {
+                        window[type].setItem(id, JSON.stringify(obj));
                     } else {
                         _this.debug('warn', type + ' not available');
                     }
@@ -219,12 +235,8 @@
                     var type = _type === 'session' ? 'sessionStorage' : 'localStorage',
                         storage = {};
 
-                    if (window[type] && window[type].getItem) {
-                        try {
-                            storage = JSON.parse(window[type].getItem(id));
-                        } catch(err) {
-                            _this.debug(err);
-                        }
+                    if (_storageAvailable(type)) {
+                        storage = JSON.parse(window[type].getItem(id));
                     } else {
                         _this.debug('warn', type + ' not available');
                     }
@@ -241,7 +253,7 @@
                  */
                 remove: function(id, _type) {
                     var type = _type === 'session' ? 'sessionStorage' : 'localStorage';
-                    if (window[type] && window[type].removeItem) {
+                    if (_storageAvailable(type)) {
                         window[type].removeItem(id);
                         return true;
                     } else {
@@ -337,7 +349,7 @@
                     if (namespace) {
                         event_name += '.' + namespace;
                     }
-                    _this.publish(event_name, [params] || []);
+                    _this.publish(event_name, [params]);
                 }
             }
 
