@@ -281,7 +281,7 @@
                 }
             },
 
-        // Delegation methods
+            // Delegation methods
 
             _delegateApiRequests = function() {
                 _$context.on('click.api-request auto-load.api-request', _selectors.API_LINK, function(e) {
@@ -345,10 +345,7 @@
             _publishUserEvents = function(params, namespace) {
                 var i, event_name;
                 for (i = 0; i < params.api.events.length; i++) {
-                    event_name = params.api.events[i];
-                    if (namespace) {
-                        event_name += '.' + namespace;
-                    }
+                    event_name = params.api.events[i] + '.' + (namespace || 'afterRender');
                     _this.publish(event_name, [params]);
                 }
             }
@@ -498,7 +495,7 @@
 
                 if (!api.url) {
                     // User events with "pre" namespace triggered before render
-                    _publishUserEvents(params, 'pre');
+                    _publishUserEvents(params, 'beforeRender');
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(api.templateData) : api.partial(api.templateData);
@@ -523,7 +520,7 @@
                     templateData = $.extend({}, _cache.response[api_request.cacheKey].data, api.templateData);
                     params.response = _cache.response[api_request.cacheKey].response;
                     // User events with "pre" namespace triggered before render
-                    _publishUserEvents(params, 'pre');
+                    _publishUserEvents(params, 'beforeRender');
                     _options.apiBeforeRender(params);
                     _pub('apiBeforeRender', [params]);
                     html = api.template ? api.template(templateData) : api.partial(templateData);
@@ -589,7 +586,7 @@
                         $loading = $target.find(_selectors.LOADING);
 
                     // User events with "pre" namespace triggered before render
-                    _publishUserEvents(params, 'pre');
+                    _publishUserEvents(params, 'beforeRender');
 
                     if ($target.length && api.loading && $loading.length) {
                         $loading.fadeOut(100, function() {
@@ -685,6 +682,9 @@
          * @returns {Payload}
          */
         this.publish = function() {
+            if (arguments[0].indexOf('.') === -1) {
+                arguments[0] += '.afterRender';
+            }
             _debug('info', '"' + arguments[0] + '"', 'event published.');
             _$userEvents.trigger.apply(_$userEvents, arguments);
             return _this;
@@ -697,6 +697,14 @@
          * @returns {Payload}
          */
         this.subscribe = function() {
+            var namespaceIndex = arguments[0].indexOf('.');
+            if (namespaceIndex === -1) {
+                arguments[0] += '.afterRender';
+            } else if (arguments[0].substr(namespaceIndex) === '.pre') {
+                // @todo: remove the check for 'pre' namespace in v1.0
+                arguments[0] = arguments[0].replace('.pre', '.beforeRender');
+                _debug('warn', 'ATTENTION: The user event \'pre\' namespace has been deprecated. Use \'beforeRender\' instead.');
+            }
             _$userEvents.on.apply(_$userEvents, arguments);
             return _this;
         };
