@@ -5,7 +5,6 @@
  * @copyright 2015-2017, Philip Klauzinski
  * @license Released under the MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @author Philip Klauzinski (http://webtopian.com)
- * @version 0.5.3
  * @requires jQuery v1.7+
  * @preserve
  */
@@ -88,8 +87,7 @@
             },
 
             _cache = {
-                response: {},
-                view: {}
+                response: {}
             },
 
             _payloadEvents = [
@@ -379,7 +377,7 @@
         /**
          * Expose the internal _cache object for external editing
          *
-         * @type {{response: {}, view: {}}}
+         * @type {{}}
          */
         this.cache = _cache;
 
