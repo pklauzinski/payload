@@ -70,6 +70,7 @@
                 subscribers: [], // [ {events: [], methods: [] } ]
                 templates: (typeof Handlebars === 'undefined') ? {} : Handlebars.templates,
                 timeout: 0,
+                contentType: 'application/json',
                 xhrAlways: $.noop,
                 xhrBeforeSend: $.noop,
                 xhrDone: $.noop,
@@ -462,7 +463,8 @@
                         app: _this.appData,
                         view: $origin.data()
                     },
-                    token: $origin.attr(_dataPrefix + 'token') || _options.apiAccessToken || false
+                    token: $origin.attr(_dataPrefix + 'token') || _options.apiAccessToken || false,
+                    contentType: $origin.attr(_dataPrefix + 'content-type') || _options.contentType
                 },
                 templateName = $origin.attr(_dataPrefix + 'template') || $origin.attr(_dataPrefix + 'partial'),
                 api_request, $target, $loading, $load, html, templateData, params;
@@ -547,7 +549,7 @@
                     type: api.method,
                     dataType: api.type,
                     data: (api.method === 'get') ? $.param(data || {}) : JSON.stringify(api.requestData),
-                    contentType: 'application/json',
+                    contentType: api.contentType,
                     cache: api.cacheRequest,
                     timeout: api.timeout,
                     beforeSend: function(jqXHR, settings) {

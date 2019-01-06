@@ -5,9 +5,9 @@
 [![Bower version](https://img.shields.io/bower/v/payloadjs.svg)](https://github.com/payloadjs/payload)
 [![MIT Licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Payload.js is a javascript single page application (SPA) driver that creates a global `Payload` object to automate API requests and render [Handlebars](http://handlebarsjs.com/) templates or raw HTML data within the DOM. Payload.js's behaviors are initialized by calling `Payload.deliver()` with a default object of options, and are further controlled by setting various HTML `data-` attributes on DOM objects.
+Payload.js is a javascript single page application (SPA) driver that allows you to automate and manage REST API requests and render [Handlebars](http://handlebarsjs.com/) templates or raw HTML from the response data. It also allows you to render Handlebars templates with expressions populated by data in memory, and includes a **pub/sub**, or **publish/subscribe**, API for managing custom events.
 
-When DOM objects imbued with Payload.js's selectors are activated, a call to `Payload.apiRequest()` is performed, which involves making a XHR request and/or rendering a template. Payload.js also contains template/response caching and an event system as additional means of integration.
+When DOM objects imbued with Payload.js's selectors are activated, a call to `Payload.apiRequest()` is performed, which involves making an XHR request and/or rendering a template. Payload.js also contains **rendered template/response caching** and an **extensions API** as additional means of integration.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ When DOM objects imbued with Payload.js's selectors are activated, a call to `Pa
 - [Dependencies](#dependencies)
 - [Selectors](#selectors)
 - [HTML5 API](#html5-api)
-- [Payload.js Initialization Options](#payloadjs-initialization-options)
+- [Payload.js Initialization Options](#payload-js-initialization-options)
 - [Primary Methods](#primary-methods)
 - [Helper Methods](#helper-methods)
 - [API Request Handling](#api-request-handling)
@@ -29,7 +29,7 @@ When DOM objects imbued with Payload.js's selectors are activated, a call to `Pa
 
 ## Installation
 
-Payload.js can be downloaded [directly from GitHub](https://github.com/payloadjs/payload/archive/master.zip), installed from [NPM](https://www.npmjs.com/), or installed from [Bower](http://bower.io/).
+Payload.js can be cloned or downloaded [directly from GitHub](https://github.com/payloadjs/payload), installed from [NPM](https://www.npmjs.com/), or installed from [Bower](http://bower.io/).
 
 ### Install from NPM
 
@@ -47,7 +47,7 @@ $ bower install payloadjs --save
 - [jQuery](https://jquery.com/) >= v1.7
 - [Handlebars runtime](http://handlebarsjs.com/precompilation.html) - version depends entirely on your compiler version
 
-**Note:** Handlebars is not required if you choose to only work with raw XHR responses, e.g. HTML returned directly from an API request.
+> **Note:** Handlebars is not required if you choose to only work with raw XHR responses, e.g. HTML returned directly from an API request.
 
 ## Selectors
 
@@ -66,7 +66,7 @@ Payload.js selectors can also contain the `data-auto-load` attribute to cause th
 
 ## HTML5 API
 
-The most useful feature of Payload.js is its intuitive HTML5 API. It can be used out of the box with little to no configuration and interacted with entirely from HTML. This makes Payload.js accessible to the non javascript savvy web developer.
+The most useful feature of Payload.js is its intuitive HTML5 API. It can be used out of the box with little to no configuration and interacted with entirely from HTML. This makes Payload.js accessible to the non-javascript-savvy developer.
 
 ```html
 <button data-url="/api/endpoint"
@@ -103,7 +103,7 @@ The most useful feature of Payload.js is its intuitive HTML5 API. It can be used
 
 ## Primary Methods
 
-  - `deliver(options)` - Used to initialize the initial options to Payload.js and start monitoring the Payload.js context for events; see [Payload.js Options](#payloadjs-initialization-options).
+  - `deliver(options)` - Used to initialize the initial options to Payload.js and start monitoring the Payload.js context for events; see [Payload.js Options](#payload-js-initialization-options).
   - `apiRequest($origin)` - Automatically called when a selector is activated. May also be called explicitly by passing in a jQuery object with the proper data attributes. See [API Request Handling](#api-request-handling) for more information about this method.
   - `triggerAutoLoad($element)`  - Perform an API request on any DOM nodes containing the attribute `data-auto-load`. If `$element` is given, perform an API request on the given jQuery object instead of on the Payload.js `$context`.
   - `publish(eventName, arguments)`  - Publish a Payload.js. Any arguments given will pass through to the event handlers subscribed to the event named.
@@ -128,13 +128,14 @@ When performing an API request Payload.js will also manage showing and hiding lo
 
 Note that DOM objects must either perform an API call by having `api.url` set (see the [API Object and HTML attributes](#api-object-and-html-attributes)) or specifying a template to load.
 
-  1. Publish events with `pre` namespace to allow any preparation work to happen.
+  1. Subscribe to events with the `beforeRender` namespace to modify any data before the view is rendered.
   1. Invoke `apiCallback` method set in Payload.js options (see [API Callback Params](#api-callback-params)).
   1. If no API URL was specified or a cached view was used, publish the API events and trigger `auto-load`.
   1. Show any configured loading indicators.
-  1. Perform the XHR request.
+  1. Perform the XHR.
     1. Failures will invoke the `xhrFail` callback option.
-    1. The `xhrAlways` callback option always gets called on XHR request completion.
+    1. The `xhrAlways` callback option always gets called on XHR completion.
+    1. The `xhrDone` callback is invoked upon a successful XHR.
   1. If a template selector is defined, render the template into the specified location. If `api.loading` was set, the loading element will quickly fade out first. The `xhrDone` callback option is invoked, API events are published, and `triggerAutoLoad($target)` is called.
   1. Cache the XHR response if requested.
 
@@ -158,30 +159,30 @@ If the API call involves making a XHR request the following additional attribute
 
 The API object defined below is passed within the API params to the various callback methods. The various options are controlled through HTML `data-` attributes on the `$origin` object, which points to a `$target` object for template rendering.
 
-  - `href` - $origin `href` attribute; for reference
-  - `url` -  $origin `data-url` or `action` (form) attribute; Used as API URL if set
-  - `method` - $origin `data-method` or `method` attribute; HTTP method to use in API call (default: `'get'`)
-  - `cacheRequest` - $origin `data-cache-request` attribute; if `true` flag XHR request to be cached
-  - `cacheResponse` - $origin `data-cache-response` attribute; if `true` use cached response from Payload.js
-  - `type` - jquery XHR request type (default: `'json'`)
-  - `selector` - $origin `data-selector` attribute; jQuery selector for the API $target that a template will be loaded into
-  - `template` - $origin "data-template" attribute; name of the Handlebars template to load into the location specified by `data-selector` (overrides `data-partial` if also set)
-  - `partial` - $origin `data-partial` attribute; name of the Handlebars partial template to load into the location specified by `data-selector`
-  - `events` - $origin `data-publish` attribute; space-separated list of events to have published to Payload.js subscribers
+  - `href` - The `href` attribute value from `$origin`; for reference and for use with an external routing component
+  - `url` -  `$origin` `data-url` or `action` (form) attribute; Used as API URL if set
+  - `method` - `$origin` `data-method` or `method` attribute; HTTP method to use in API call (default: `'get'`)
+  - `cacheRequest` - `$origin` `data-cache-request` attribute; if `true` flag XHR request to be cached
+  - `cacheResponse` - `$origin` `data-cache-response` attribute; if `true` use cached response from Payload.js
+  - `type` - jQuery XHR request type (default: `'json'`)
+  - `selector` - `$origin` `data-selector` attribute; jQuery selector for the API $target that a template will be loaded into
+  - `template` - `$origin "data-template" attribute; name of the Handlebars template to load into the location specified by `data-selector` (overrides `data-partial` if also set)
+  - `partial` - `$origin` `data-partial` attribute; name of the Handlebars partial template to load into the location specified by `data-selector`
+  - `events` - `$origin` `data-publish` attribute; space-separated list of events to have published to Payload.js subscribers
   - `requestData` - combination of JSON serialized form data and any JSON-encoded values within $origin `data-form` attribute
   - `templateData` - See [Template Data](#template-data) below
-  - `loading` - $origin `data-loading` attribute; if "true" (or the `loadingDefault` option is true) the `$target` element will be cleared and have the `loadingHtml` from Payload.js options inserted during API request handling.
+  - `loading` - `$origin` `data-loading` attribute; if "true" (or the `loadingDefault` option is true) the `$target` element will be cleared and have the `loadingHtml` from Payload.js options inserted during API request handling.
 
 ### Template Data
 
 Every Handlebars template always has the following data available:
 
-  - `app` - Any custom application data set at `Payload.appData`
-  - `request` - href, url, method, and cacheKey for the API call
+  - `app` - Any custom application data contained in `Payload.appData`
+  - `request` - `href`, `url`, `method`, and `cacheKey` for the API call
   - `view` - A dictionary of all `data-*` attributes from `$origin`
 
 ## Payload.js Object Properties
 
-  - `options` - Current set of options (see [Payload.js Options](#payloadjs-initialization-options))
-  - `appData` - Object for storing custom application data; provided as `app` within template data
-  - `cache` - Object containing `response` cache.
+  - `options` - Current set of options (see [Payload.js Options](#payload-js-initialization-options))
+  - `appData` - Object for storing arbitrary application data; provided as `app` within template data
+  - `cache` - Object containing `response` cache; available for external component cache

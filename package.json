@@ -6,10 +6,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pklauzinski/payload.git"
-  },
+  "repository": "https://github.com/pklauzinski/payload.git",
   "keywords": [
     "payload",
     "payloadjs",
@@ -20,10 +17,7 @@
     "html5",
     "ajax"
   ],
-  "author": {
-    "name": "Philip Klauzinski",
-    "url": "http://webtopian.com"
-  },
+  "author": "Philip Klauzinski (http://webtopian.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pklauzinski/payload/issues"
@@ -33,8 +27,8 @@
     "jquery": ">=1.7"
   },
   "devDependencies": {
-    "grunt": "^1.0.1",
+    "grunt": "^1.0.3",
     "grunt-bump": "^0.8.0",
-    "gruntify-eslint": "4.0.0"
+    "gruntify-eslint": "5.0.0"
   }
 }
